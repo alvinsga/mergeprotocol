@@ -67,6 +67,7 @@
 	}
 </script>
 
+<h1 class="text-3xl font-bold underline">Hello world!</h1>
 <h1>Token mint api and ui</h1>
 <button on:click={createCollection}>Create collection</button>
 <button on:click={createToken}>Create token</button>

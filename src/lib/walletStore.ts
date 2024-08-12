@@ -13,7 +13,7 @@ export const wallet = writable({
 	account: null as AccountInfo | null,
 	network: null as NetworkInfo | null,
 	wallet: null as WalletInfo | null,
-	walletCore: new WalletCore([new PetraWallet()], [], {
+	walletCore: new WalletCore([new PetraWallet()], ['Petra', 'Pontem Wallet', 'Mizu Wallet'], {
 		network: Network.TESTNET
 	})
 });

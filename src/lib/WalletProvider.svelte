@@ -1,21 +1,23 @@
 <script lang="ts">
 	import { onMount, setContext } from 'svelte';
-	import { isRedirectable, WalletCore, WalletReadyState } from '@aptos-labs/wallet-adapter-core';
-	import type {
-		Wallet,
-		AptosStandardSupportedWallet,
-		AvailableWallets
+	import {
+		type Wallet,
+		type AptosStandardSupportedWallet,
+		WalletReadyState
 	} from '@aptos-labs/wallet-adapter-core';
 	import { wallet, isLoading } from './walletStore';
+	import { goto } from '$app/navigation';
 
 	export let autoConnect = true;
 	export let onError: (error: any) => void = console.error;
 
-	let wallets: ReadonlyArray<Wallet | AptosStandardSupportedWallet> = [];
+	let wallets: ReadonlyArray<Wallet | AptosStandardSupportedWallet> = $wallet.walletCore.wallets;
+
+	$: installedWallets = wallets.filter((wallet) => wallet.readyState == WalletReadyState.Installed);
+	$: otherWallets = wallets.filter((wallet) => wallet.readyState != WalletReadyState.Installed);
 
 	onMount(() => {
-		wallets = $wallet.walletCore.wallets;
-
+		console.log(wallets);
 		if (autoConnect && localStorage.getItem('AptosWalletName')) {
 			connect(localStorage.getItem('AptosWalletName') ?? '');
 		} else {
@@ -101,19 +103,21 @@
 {$wallet.wallet}
 <button on:click={disconnect}>Disconnect</button>
 
-{#each wallets as walletInfo}
+{#each installedWallets as wallet}
 	<div>
-		<slot name="icon">
-			<img src={walletInfo.icon} alt="{walletInfo.name} icon" />
-		</slot>
-		<slot name="name">
-			<div>{walletInfo.name}</div>
-		</slot>
-		<slot name="connect-button">
-			<button on:click={() => connect(walletInfo.name)}>Connect</button>
-		</slot>
-		<slot name="install-link">
-			<a href={walletInfo.url} target="_blank" rel="noopener noreferrer"> Install </a>
-		</slot>
+		<button on:click={() => connect(wallet.name)}>
+			<div class="flex outline">
+				<img src={wallet.icon} alt="{wallet.name} icon" class="max-w-8" />
+				<div>{wallet.name}</div>
+			</div>
+		</button>
 	</div>
+{/each}
+{#each otherWallets as wallet}
+	<a href={wallet.url} target="_blank" rel="noopener noreferrer">
+		<div class="flex">
+			<img src={wallet.icon} alt="{wallet.name} icon" class="max-w-8" />
+			<div>{wallet.name}</div>
+		</div>
+	</a>
 {/each}
