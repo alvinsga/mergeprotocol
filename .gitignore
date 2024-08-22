@@ -3,9 +3,12 @@ node_modules
 # Output
 .output
 .vercel
-/.svelte-kit
+frontend/.svelte-kit
 /build
 /files_to_upload
+/move/build
+/token-minter
+.aptos
 
 # OS
 .DS_Store
