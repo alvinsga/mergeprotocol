@@ -1,5 +1,4 @@
 module launchpad::launchpad3 {
-    use std::signer;
     use std::string::String;
     use aptos_framework::object::{Self, ExtendRef};
 
@@ -52,8 +51,8 @@ module launchpad::launchpad3 {
     }
 
     public entry fun mint_token(
-        creator: &signer,
-        _owner: address,
+        _creator: &signer,
+        owner: address,
         collection_name: String,
         description: String,
         token_name: String,
@@ -72,7 +71,7 @@ module launchpad::launchpad3 {
             vector[],
             vector[],
         );
-        object::transfer(creator_signer, tokenRef, signer::address_of(creator));
+        object::transfer(creator_signer, tokenRef, owner);
     }
 
     #[view]
