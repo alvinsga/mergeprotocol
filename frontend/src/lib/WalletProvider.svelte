@@ -7,6 +7,7 @@
 	} from '@aptos-labs/wallet-adapter-core';
 	import { wallet, isLoading } from './walletStore';
 	import { goto } from '$app/navigation';
+	import { Button } from './components/ui/button';
 
 	export let autoConnect = true;
 	export let onError: (error: any) => void = console.error;
@@ -103,21 +104,21 @@
 {$wallet.wallet}
 <button on:click={disconnect}>Disconnect</button>
 
-{#each installedWallets as wallet}
-	<div>
-		<button on:click={() => connect(wallet.name)}>
-			<div class="flex outline">
-				<img src={wallet.icon} alt="{wallet.name} icon" class="max-w-8" />
+<div class="max-w-xs">
+	{#each installedWallets as wallet}
+		<Button class="w-full mt-2" on:click={() => connect(wallet.name)}>
+			<div class="flex items-center">
+				<img src={wallet.icon} alt="{wallet.name} icon" class="max-w-6 mr-2" />
 				<div>{wallet.name}</div>
 			</div>
-		</button>
-	</div>
-{/each}
-{#each otherWallets as wallet}
-	<a href={wallet.url} target="_blank" rel="noopener noreferrer">
-		<div class="flex">
-			<img src={wallet.icon} alt="{wallet.name} icon" class="max-w-8" />
-			<div>{wallet.name}</div>
-		</div>
-	</a>
-{/each}
+		</Button>
+	{/each}
+	{#each otherWallets as wallet}
+		<Button href={wallet.url} target="_blank" rel="noopener noreferrer" class="w-full mt-2">
+			<div class="flex items-center">
+				<img src={wallet.icon} alt="{wallet.name} icon" class="max-w-6 mr-2" />
+				<div>{wallet.name}</div>
+			</div>
+		</Button>
+	{/each}
+</div>

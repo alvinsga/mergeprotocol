@@ -45,5 +45,11 @@
 		"vite": "^5.0.3"
 	},
 	"type": "module",
-	"dependencies": {}
+	"dependencies": {
+		"bits-ui": "^0.21.13",
+		"clsx": "^2.1.1",
+		"pocketbase": "^0.21.4",
+		"tailwind-merge": "^2.5.2",
+		"tailwind-variants": "^0.2.1"
+	}
 }
