@@ -1,43 +1,10 @@
 <script lang="ts">
-	import Button from '$lib/components/ui/button/button.svelte';
 	import type { IP } from '$lib/types.ts';
-	const ipArray: IP[] = [
-		{
-			id: '1',
-			name: 'IP 1',
-			image: 'https://via.placeholder.com/150',
-			address: '0x1',
-			license: 'free'
-		},
-		{
-			id: '2',
-			name: 'IP 2',
-			image: 'https://via.placeholder.com/150',
-			address: '0x2',
-			license: 'free'
-		},
-		{
-			id: '3',
-			name: 'IP 3',
-			image: 'https://via.placeholder.com/150',
-			address: '0x3',
-			license: 'free'
-		},
-		{
-			id: '4',
-			name: 'IP 4',
-			image: 'https://via.placeholder.com/150',
-			address: '0x4',
-			license: 'free'
-		},
-		{
-			id: '5',
-			name: 'IP 5',
-			image: 'https://via.placeholder.com/150',
-			address: '0x5',
-			license: 'free'
-		}
-	];
+	import type { PageData } from './$types';
+
+	export let data: PageData;
+
+	const ipArray: IP[] = data.ipAssets;
 </script>
 
 <div class="flex justify-between">
