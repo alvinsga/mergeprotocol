@@ -6,38 +6,14 @@
 		WalletReadyState
 	} from '@aptos-labs/wallet-adapter-core';
 	import { wallet, isLoading } from './walletStore';
-	import { goto } from '$app/navigation';
 	import { Button } from './components/ui/button';
 
-	export let autoConnect = true;
 	export let onError: (error: any) => void = console.error;
 
 	let wallets: ReadonlyArray<Wallet | AptosStandardSupportedWallet> = $wallet.walletCore.wallets;
 
 	$: installedWallets = wallets.filter((wallet) => wallet.readyState == WalletReadyState.Installed);
 	$: otherWallets = wallets.filter((wallet) => wallet.readyState != WalletReadyState.Installed);
-
-	onMount(() => {
-		console.log(wallets);
-		if (autoConnect && localStorage.getItem('AptosWalletName')) {
-			connect(localStorage.getItem('AptosWalletName') ?? '');
-		} else {
-			$isLoading = false;
-		}
-
-		// Set up event listeners
-		$wallet.walletCore.on('connect', handleConnect);
-		$wallet.walletCore.on('disconnect', handleDisconnect);
-		$wallet.walletCore.on('accountChange', handleAccountChange);
-		$wallet.walletCore.on('networkChange', handleNetworkChange);
-
-		return () => {
-			$wallet.walletCore.off('connect', handleConnect);
-			$wallet.walletCore.off('disconnect', handleDisconnect);
-			$wallet.walletCore.off('accountChange', handleAccountChange);
-			$wallet.walletCore.off('networkChange', handleNetworkChange);
-		};
-	});
 
 	function connect(walletName: string) {
 		$isLoading = true;
@@ -48,10 +24,6 @@
 				$isLoading = false;
 				console.log('connected');
 			});
-	}
-
-	function disconnect() {
-		$wallet.walletCore.disconnect().catch(onError);
 	}
 
 	function handleConnect() {
@@ -65,6 +37,7 @@
 	}
 
 	function handleDisconnect() {
+		console.log('disconneting wallet');
 		wallet.update((state) => ({
 			...state,
 			connected: false,
@@ -99,10 +72,6 @@
 	// 	changeNetwork: walletCore.changeNetwork.bind(walletCore)
 	// });
 </script>
-
-{$wallet.connected}
-{$wallet.wallet}
-<button on:click={disconnect}>Disconnect</button>
 
 <div class="max-w-xs">
 	{#each installedWallets as wallet}

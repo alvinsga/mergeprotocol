@@ -1,5 +1,4 @@
 <script lang="ts">
-	import WalletProvider from '$lib/WalletProvider.svelte';
 	import { aptos } from '$lib/aptos';
 	import { Account, type GraphqlQuery, Ed25519PrivateKey } from '@aptos-labs/ts-sdk';
 	import { Input } from '$lib/components/ui/input';
@@ -128,5 +127,4 @@
 
 <button on:click={login}>Login</button>
 
-<WalletProvider />
 <hr />
