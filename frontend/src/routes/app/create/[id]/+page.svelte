@@ -13,11 +13,12 @@
 		SelectValue
 	} from '$lib/components/ui/select';
 	import { Input } from '$lib/components/ui/input';
+	import { goto } from '$app/navigation';
 
-	let name = '';
-	let image = '';
 	let license = { value: '', label: '' };
-	let address = $page.params.id;
+	const address = $page.params.id;
+	const image = $page.url.searchParams.get('image') ?? '';
+	const name = $page.url.searchParams.get('name') ?? '';
 
 	onMount(() => {
 		if (!$authStore.isLoggedIn) {
@@ -29,7 +30,6 @@
 
 	async function uploadIP() {
 		// set image
-		image = $page.url.searchParams.get('image') ?? '';
 
 		try {
 			const data: Partial<OffChainIPData> = {
@@ -53,6 +53,9 @@
 			}
 
 			const result = await response.json();
+			if (result) {
+				goto('/app/manage');
+			}
 			console.log('IP uploaded successfully:', result.record);
 			// Optionally, redirect or show success message
 		} catch (error) {
@@ -69,13 +72,9 @@
 	<div>Address:{$page.params.id}</div>
 
 	<div>
-		<Label for="name">Name</Label>
-		<Input id="name" bind:value={name} placeholder="Enter IP asset name" />
+		<Label for="name">Name: {name}</Label>
 	</div>
-	<div>
-		<Label for="image">Image URL</Label>
-		<Input id="image" bind:value={image} placeholder="Enter image URL" />
-	</div>
+
 	<div>
 		<Label for="license">License</Label>
 		<Select bind:selected={license}>
@@ -89,11 +88,5 @@
 			</SelectContent>
 		</Select>
 	</div>
-
-	<div>
-		<div>License:</div>
-		<!-- Free license, paid license, royalty -->
-	</div>
-
 	<Button on:click={uploadIP}>Publish</Button>
 </div>
