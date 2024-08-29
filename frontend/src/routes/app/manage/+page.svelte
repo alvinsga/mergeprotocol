@@ -14,15 +14,19 @@
 	{#if ipAssets.length > 0}
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
 			{#each ipAssets as ip}
-				<a href="/app/edit/{ip.id}" class="border rounded-lg p-4 shadow-sm">
+				<div class="border rounded-lg p-4 shadow-sm">
 					<img src={ip.image} alt={ip.name} class="w-full h-40 object-cover rounded-md mb-2" />
 					<h3 class="text-lg font-semibold">{ip.name}</h3>
 					<p class="text-sm text-gray-600">Address: {ip.address}</p>
 					<p class="text-sm text-gray-600">License: {ip.license}</p>
-				</a>
+				</div>
 			{/each}
 		</div>
 	{:else}
 		<p class="mt-4 text-gray-600">No IP items available.</p>
 	{/if}
+
+	<div class="flex justify-between mt-12">
+		<div class="text-2xl font-bold">Your Licenses</div>
+	</div>
 </div>

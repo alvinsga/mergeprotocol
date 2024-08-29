@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { Button } from '$lib/components/ui/button';
-	import { pb, authStore } from '$lib/pocketbase';
-	import { onMount } from 'svelte';
 	import type { IP, OffChainIPData } from '$lib/types';
 	import { Label } from '$lib/components/ui/label';
 	import {
@@ -12,32 +10,39 @@
 		SelectTrigger,
 		SelectValue
 	} from '$lib/components/ui/select';
-	import { Input } from '$lib/components/ui/input';
 	import { goto } from '$app/navigation';
+	import type { PageData } from '../$types';
 
+	export let data: PageData;
 	let license = { value: '', label: '' };
 	const address = $page.params.id;
 	const image = $page.url.searchParams.get('image') ?? '';
 	const name = $page.url.searchParams.get('name') ?? '';
 
-	onMount(() => {
-		if (!$authStore.isLoggedIn) {
-			// Redirect to login page or show error
-			console.error('User not logged in');
-			return;
-		}
-	});
+	const standardLicense = {
+		cost: 30,
+		currency: 'asdasd',
+		expiration: 34234,
+		exclusive: false,
+		rightsManaged: false,
+		attributionRequired: true,
+		derivativesAllowed: true,
+		shareAlike: false,
+		commercialUseAllowed: true,
+		nonCommercialUseOnly: false,
+		modifiable: true,
+		geographicRestrictions: false,
+		numberOfUsesRestricted: false
+	};
 
 	async function uploadIP() {
-		// set image
-
+		if (!data.user) return;
 		try {
-			const data: Partial<OffChainIPData> = {
+			const payload: Partial<OffChainIPData> = {
 				name,
 				image,
 				address,
-				license: license.value,
-				creator: $authStore.userId
+				creator: data.user?.id
 			};
 
 			const response = await fetch(`/api/createAssetDB`, {
@@ -45,7 +50,7 @@
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify(data)
+				body: JSON.stringify(payload)
 			});
 
 			if (!response.ok) {
@@ -62,6 +67,10 @@
 			console.error('Error uploading IP:', error);
 			// Handle error, show error message to user
 		}
+	}
+
+	function addLicenseAptos() {
+		// TODO: execute add license function on smart contract
 	}
 </script>
 

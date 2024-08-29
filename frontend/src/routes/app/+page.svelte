@@ -15,7 +15,7 @@
 	{#if ipArray.length > 0}
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
 			{#each ipArray as ip}
-				<a href="/app/{ip.id}" class="border rounded-lg p-4 shadow-sm">
+				<a href="/app/{ip.address}" class="border rounded-lg p-4 shadow-sm">
 					<img src={ip.image} alt={ip.name} class="w-full h-40 object-cover rounded-md mb-2" />
 					<h3 class="text-lg font-semibold">{ip.name}</h3>
 					<p class="text-sm text-gray-600">Address: {ip.address}</p>

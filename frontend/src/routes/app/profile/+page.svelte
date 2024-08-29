@@ -3,10 +3,11 @@
 	import { Button } from '$lib/components/ui/button';
 	import WalletProvider from '$lib/WalletProvider.svelte';
 	import { wallet } from '$lib/walletStore';
+	import { goto } from '$app/navigation';
 
 	async function logout() {
 		pb.authStore.clear();
-		authStore.set({ isLoggedIn: false, userId: '' });
+		goto('/app');
 		console.log('Logged out successfully');
 	}
 

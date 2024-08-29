@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { Button } from '$lib/components/ui/button';
 	import { authStore, pb } from '$lib/pocketbase';
@@ -11,7 +12,8 @@
 	async function loginUsingGoogleOAuth() {
 		try {
 			const authData = await pb.collection('users').authWithOAuth2({ provider: 'google' });
-			console.log('Logged in successfully:', authData);
+			if (authData) invalidateAll();
+			console.log('Logged in successfully:');
 			// authStore.set({ isLoggedIn: true, userId: authData.record.id });
 		} catch (error) {
 			console.error('Error logging in with Google:', error);
@@ -89,9 +91,9 @@
 <div class="flex justify-between items-center">
 	<a href="/app" class="text-2xl font-bold">Merge</a>
 	<div class="flex gap-2">
-		<Button href="/app/manage">Manage IP</Button>
 		<Button href="/app/create">Create IP</Button>
 		{#if data.isLoggedIn}
+			<Button href="/app/manage">Manage IP</Button>
 			<Button href="/app/profile" variant="default">Profile</Button>
 		{:else}
 			<Button on:click={loginUsingGoogleOAuth} variant="default">Login</Button>
