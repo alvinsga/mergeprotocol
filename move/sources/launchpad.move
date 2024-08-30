@@ -1,5 +1,4 @@
-module launchpad::launchpad3 {
-    use std::signer;
+module launchpad::launchpad5 {
     use std::string::String;
     use std::vector;
     use aptos_std::smart_table::{Self, SmartTable};
@@ -12,35 +11,102 @@ module launchpad::launchpad3 {
         creator_extend_ref: ExtendRef,
     }
 
-    struct MyTable has key {
-        ip_asset_ownership: SmartTable<address, vector<address>>
+    struct MergeProtocol has key {
+        parent_child_rel: SmartTable<address, vector<address>>,
+        child_parent_rel: SmartTable<address, vector<address>>,
+        token_license_rel: SmartTable<address, vector<License>>
+    }
+
+    struct License has key, store, drop, copy {
+        royalty: bool,
+        price: u64,
+        attributionRequired: bool
     }
 
     fun init_creator_ref(creator: &signer, ) {
-        // Create extend ref
+        // Create extend ref for Collection
         let creator_constructor_ref = &object::create_object(@launchpad);
         let creator_extend_ref = object::generate_extend_ref(creator_constructor_ref);
         move_to(creator, CollectionCreator { creator_extend_ref });
     }
 
-    public entry fun init_table(creator: &signer,) {
-        let my_table = MyTable {
-            ip_asset_ownership: smart_table::new(),
+    // Start of protocol section
+    public entry fun init_table(creator: &signer, ) {
+        let my_table = MergeProtocol {
+            parent_child_rel: smart_table::new(),
+            child_parent_rel: smart_table::new(),
+            token_license_rel: smart_table::new(),
         };
         move_to(creator, my_table);
     }
 
-    public entry fun register_ip_asset_owner(creator: &signer, ipasset: address) acquires MyTable {
-        let ip_asset_ownership_table = &mut borrow_global_mut<MyTable>(@launchpad).ip_asset_ownership;
-        // If doesnt exist, create row in table
-        let mut_ref = smart_table::borrow_mut_with_default(
-            ip_asset_ownership_table,
-            signer::address_of(creator),
-            vector::singleton(ipasset)
-        );
-        // If exists, append to array
-        vector::push_back( mut_ref, ipasset);
+    // New generic function to update or create a record in a SmartTable
+    fun update_or_create_record<K: drop+ copy, V: drop + copy>(
+        table: &mut SmartTable<K, vector<V>>,
+        key: K,
+        value: V
+    ) {
+        if (smart_table::contains(table, key)) {
+            let mut_ref = smart_table::borrow_mut(table, key);
+            vector::push_back(mut_ref, value);
+        } else {
+            smart_table::add(table, key, vector::singleton(value));
+        }
     }
+
+    public entry fun register_license(
+        _creator: &signer,
+        token: address,
+        royalty: bool,
+        price: u64,
+        attributionRequired: bool
+    ) acquires MergeProtocol {
+        let token_license_table = &mut borrow_global_mut<MergeProtocol>(@launchpad).token_license_rel;
+        let license = License {
+            royalty,
+            price,
+            attributionRequired
+        };
+        update_or_create_record(token_license_table, token, license);
+    }
+
+    public entry fun register_parent_child(
+        _creator: &signer,
+        parent: address,
+        child: address
+    ) acquires MergeProtocol {
+        let parent_child_table = &mut borrow_global_mut<MergeProtocol>(@launchpad).parent_child_rel;
+        update_or_create_record(parent_child_table, parent, child);
+    }
+
+    public entry fun register_child_parent(
+        _creator: &signer,
+        child: address,
+        parent: address,
+    ) acquires MergeProtocol {
+        let child_parent_table = &mut borrow_global_mut<MergeProtocol>(@launchpad).child_parent_rel;
+        update_or_create_record(child_parent_table, child, parent);
+    }
+
+    #[view]
+    public fun get_license(token: address): vector<License> acquires MergeProtocol {
+        let token_license_table = &borrow_global<MergeProtocol>(@launchpad).token_license_rel;
+        *smart_table::borrow(token_license_table, token)
+    }
+
+    #[view]
+    public fun get_parent(token: address): vector<address> acquires MergeProtocol {
+        let parent_table = &borrow_global<MergeProtocol>(@launchpad).parent_child_rel;
+        *smart_table::borrow(parent_table, token)
+    }
+
+    #[view]
+    public fun get_child(token: address): vector<address> acquires MergeProtocol {
+        let child_table = &borrow_global<MergeProtocol>(@launchpad).child_parent_rel;
+        *smart_table::borrow(child_table, token)
+    }
+    
+    // Start of NFT minting section
 
     public entry fun create_collection(
         _creator: &signer,
@@ -103,11 +169,5 @@ module launchpad::launchpad3 {
     public fun collection_address(creator: address, collection_name: String): address {
         // Recompute the collection address given the creator and its name.
         collection::create_collection_address(&creator, &collection_name)
-    }
-
-    #[view]
-    public fun get_ip_owners(key: address): vector<address> acquires MyTable {
-        let ip_asset_owner_table = &borrow_global<MyTable>(@launchpad).ip_asset_ownership;
-        *smart_table::borrow(ip_asset_owner_table, key)
     }
 }

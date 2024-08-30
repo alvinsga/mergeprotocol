@@ -96,7 +96,9 @@
 			<Button href="/app/manage">Manage IP</Button>
 			<Button href="/app/profile" variant="default">Profile</Button>
 		{:else}
-			<Button on:click={loginUsingGoogleOAuth} variant="default">Login</Button>
+			<form action="/api/login" method="GET">
+				<Button type="submit" variant="default">Login</Button>
+			</form>
 		{/if}
 	</div>
 </div>

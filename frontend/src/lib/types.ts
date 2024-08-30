@@ -18,8 +18,14 @@ export interface OffChainIPData {
 	id: string;
 	name: string;
 	image: string;
-	address: string;
+	tokenId: string;
 	collection: string;
 	license: string;
 	creator: string;
+}
+
+export interface License {
+	royalty: boolean;
+	price: number;
+	attributionRequired: boolean;
 }
