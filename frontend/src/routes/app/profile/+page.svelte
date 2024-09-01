@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { pb } from '$lib/pocketbase';
 	import { Button } from '$lib/components/ui/button';
 	import WalletProvider from '$lib/WalletProvider.svelte';
 	import { wallet } from '$lib/walletStore';

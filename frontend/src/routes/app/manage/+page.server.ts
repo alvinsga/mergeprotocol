@@ -1,4 +1,3 @@
-import { pb } from '$lib/pocketbase';
 import type { PageServerLoad } from './$types';
 import type { IP } from '$lib/types';
 
@@ -12,7 +11,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		}
 
 		// Fetch IP assets belonging to the logged-in creator
-		const records = await pb.collection('ipassets').getList<IP>(1, 50, {
+		const records = await locals.pb.collection('ipassets').getList<IP>(1, 50, {
 			filter: `creator = "${locals.user.id}"`,
 			sort: '-created'
 		});

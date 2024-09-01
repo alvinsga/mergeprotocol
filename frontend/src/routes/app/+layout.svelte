@@ -1,25 +1,10 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
-	import { page } from '$app/stores';
 	import { Button } from '$lib/components/ui/button';
-	import { authStore, pb } from '$lib/pocketbase';
 	import { wallet } from '$lib/walletStore.js';
 	import { onMount } from 'svelte';
 
 	export let data;
 	export let autoConnect = true;
-
-	async function loginUsingGoogleOAuth() {
-		try {
-			const authData = await pb.collection('users').authWithOAuth2({ provider: 'google' });
-			if (authData) invalidateAll();
-			console.log('Logged in successfully:');
-			// authStore.set({ isLoggedIn: true, userId: authData.record.id });
-		} catch (error) {
-			console.error('Error logging in with Google:', error);
-			// authStore.set({ isLoggedIn: false, userId: '' });
-		}
-	}
 
 	function connect(walletName: string) {
 		$wallet.walletCore
@@ -66,9 +51,6 @@
 	}
 
 	onMount(() => {
-		// if (pb.authStore.isValid) {
-		// 	authStore.set({ isLoggedIn: true, userId: pb.authStore.model?.id || '' });
-		// }
 		if (autoConnect && localStorage.getItem('AptosWalletName')) {
 			connect(localStorage.getItem('AptosWalletName') ?? '');
 		}

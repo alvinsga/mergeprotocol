@@ -1,10 +1,6 @@
 <script lang="ts">
 	import { aptos } from '$lib/aptos';
 	import { Account, type GraphqlQuery, Ed25519PrivateKey } from '@aptos-labs/ts-sdk';
-	import { Input } from '$lib/components/ui/input';
-	import { Button } from '$lib/components/ui/button';
-	import { onMount } from 'svelte';
-	import { pb } from '$lib/pocketbase';
 	import { wallet } from '$lib/walletStore';
 
 	// add variables to bind to textboxes
@@ -93,38 +89,4 @@
 		});
 		console.log(collections);
 	}
-
-	async function test() {
-		const arr = await aptos.getCollectionDataByCreatorAddress({
-			creatorAddress: '0x305637d4e73d84e671a74c901c327d654501e99393639044442f77a3195c8695'
-		});
-		console.log(arr);
-	}
-
-	// login pocketbase with google oauth
-	async function login() {
-		const authData = await pb.collection('users').authWithOAuth2({
-			provider: 'google'
-		});
-		console.log(authData);
-	}
 </script>
-
-<h1 class="text-3xl font-bold underline">{$wallet.account?.address}</h1>
-<div class="">
-	<button on:click={createCollection}>Create collection</button>
-</div>
-<div>
-	<button on:click={createToken}>Create token</button>
-</div>
-
-<div class="space-y-4">
-	<Input type="text" placeholder="Collection Name" bind:value={collectionName} />
-	<Input type="text" placeholder="Collection URI" bind:value={collectionUri} />
-	<Input type="text" placeholder="Token URI" bind:value={tokenUri} />
-	<Button on:click={createCollection}>Create collection</Button>
-</div>
-
-<button on:click={login}>Login</button>
-
-<hr />

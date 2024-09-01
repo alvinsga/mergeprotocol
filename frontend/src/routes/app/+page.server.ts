@@ -1,10 +1,9 @@
-import { pb } from '$lib/pocketbase';
 import type { PageServerLoad } from './$types';
 import type { IP } from '$lib/types';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
 	try {
-		const records = await pb.collection('ipassets').getList<IP>(1, 50, {
+		const records = await locals.pb.collection('ipassets').getList<IP>(1, 50, {
 			sort: '-created'
 		});
 
