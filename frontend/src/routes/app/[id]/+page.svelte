@@ -2,37 +2,16 @@
 	import { page } from '$app/stores';
 	import { aptos } from '$lib/aptos';
 	import { Button } from '$lib/components/ui/button';
-	import type { License, OffChainIPData } from '$lib/types';
 	import type { MoveValue } from '@aptos-labs/ts-sdk';
-	import type { PageData } from '../$types';
+	import { onMount } from 'svelte';
 
 	const moduleAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
 	const moduleName = import.meta.env.VITE_MODULE_NAME;
 
-	export let data: PageData;
+	const tokenId = $page.params.id;
+	let tokenData: any;
 
 	let childRels: MoveValue = [];
-	let licenses: License[] = [
-		{ royalty: false, price: 12, attributionRequired: true },
-		{ royalty: false, price: 1452, attributionRequired: true },
-		{ royalty: false, price: 1452, attributionRequired: true }
-	];
-
-	const standardLicense = {
-		cost: 30,
-		currency: 'asdasd',
-		expiration: 34234,
-		exclusive: false,
-		rightsManaged: false,
-		attributionRequired: true,
-		derivativesAllowed: true,
-		shareAlike: false,
-		commercialUseAllowed: true,
-		nonCommercialUseOnly: false,
-		modifiable: true,
-		geographicRestrictions: false,
-		numberOfUsesRestricted: false
-	};
 
 	async function runAptosViewFunction(functionName: string, functionArguments: string) {
 		try {
@@ -72,89 +51,37 @@
 		// Mint NFT
 	}
 
-	async function getTokenData(tokenId: string) {
+	async function getTokenData() {
 		return await aptos.getDigitalAssetData({ digitalAssetAddress: tokenId });
 	}
 
-	async function addLicenseAptos(tokenId: string, licenseArray: License[]) {
-		try {
-			const response = await fetch('/api/addLicense', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					tokenId,
-					licenseArray
-				})
-			});
-
-			const data = await response.json();
-			if (data.success) {
-				console.log(data);
-			}
-		} catch (error) {
-			console.error(error);
-		}
-	}
-
-	async function uploadIP(name: string, image: string, tokenId: string) {
-		if (!data.user) return;
-		const payload: Partial<OffChainIPData> = {
-			name,
-			image,
-			tokenId,
-			creator: data.user?.id
-		};
-		try {
-			const response = await fetch(`/api/createAssetDB`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify(payload)
-			});
-
-			if (!response.ok) throw new Error('Failed to upload IP asset');
-			const result = await response.json();
-			console.log('IP uploaded successfully:', result.record);
-		} catch (error) {
-			console.error('Error uploading IP:', error);
-		}
-	}
-
-	async function handlePublish(image: string, tokenId: string, name: string) {
-		await addLicenseAptos(tokenId, licenses);
-		await uploadIP(name, image, tokenId);
-	}
+	onMount(async () => {
+		tokenData = await getTokenData();
+	});
 </script>
 
-{#await getTokenData($page.params.id)}
-	<p>Loading token data...</p>
-{:then tokenData}
-	<div>
-		{#await fetch(tokenData.token_uri).then((res) => res.json()) then imageData}
-			<!-- svelte-ignore a11y-missing-attribute -->
-			<img src={imageData.image} class="w-full max-w-xs mt-4" />
-			<p>Name: {tokenData.token_name || 'N/A'}</p>
-			<p>Description: {tokenData.description || 'N/A'}</p>
-			<p>Description: {tokenData.token_data_id || 'N/A'}</p>
-
-			<Button
-				on:click={() =>
-					handlePublish(imageData.image, tokenData.token_data_id, tokenData.token_name)}
-				>Publish</Button
-			>
-		{/await}
+{#if tokenData}
+	<div class="flex space-x-3">
+		<div>
+			{#await fetch(tokenData.token_uri).then((res) => res.json()) then imageData}
+				<!-- svelte-ignore a11y-missing-attribute -->
+				<img src={imageData.image} class="w-full max-w-xs mt-4" />
+				<p>Name: {tokenData.token_name || 'N/A'}</p>
+				<p>Description: {tokenData.description || 'N/A'}</p>
+				<p>Description: {tokenData.token_data_id || 'N/A'}</p>
+			{/await}
+		</div>
+		<div>
+			<Button href="/app/{tokenId}/addlicense">Add License</Button>
+			<div>Derivatives: {childRels}</div>
+			<div>Parent IP: {childRels}</div>
+			<hr />
+			<button on:click={getChildToken}>Get child</button>
+		</div>
 	</div>
-{:catch error}
-	<p>Error loading token data: {error.message}</p>
-{/await}
-<hr />
-<div>Derivatives: {childRels}</div>
-<div>Parent IP: {childRels}</div>
-<hr />
-<button on:click={getChildToken}>Get child</button>
+{:else}
+	<p>Loading token data...</p>
+{/if}
 
 <!-- <div>
 	<div>Licenses:</div>

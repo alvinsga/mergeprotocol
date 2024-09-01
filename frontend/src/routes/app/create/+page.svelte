@@ -31,7 +31,7 @@
 			<ul class="space-y-2">
 				{#each tokenArray as token}
 					{#await fetch(token.image).then((res) => res.json()) then imageData}
-						<a href="/app/create/{token.id}?image={imageData.image}&name={token.name}">
+						<a href="/app/{token.id}">
 							<li class="border p-2 rounded flex items-center">
 								<img src={imageData.image} alt={token.name} class="w-16 h-16 object-cover mr-4" />
 
@@ -45,7 +45,7 @@
 							</li>
 						</a>
 					{:catch}
-						<a href="/app/create/{token.id}">
+						<a href="/app/{token.id}">
 							<li class="border p-2 rounded flex items-center">
 								<div>
 									<div class="font-medium">{token.name}</div>
