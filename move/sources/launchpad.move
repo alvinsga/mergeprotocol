@@ -1,4 +1,4 @@
-module launchpad::launchpad5 {
+module launchpad::launchpad6 {
     use std::string::String;
     use std::vector;
     use aptos_std::smart_table::{Self, SmartTable};
@@ -14,13 +14,21 @@ module launchpad::launchpad5 {
     struct MergeProtocol has key {
         parent_child_rel: SmartTable<address, vector<address>>,
         child_parent_rel: SmartTable<address, vector<address>>,
-        token_license_rel: SmartTable<address, vector<License>>
+        token_license_rel: SmartTable<address, vector<u64>>,
+        license_table: SmartTable<u64, License>,
+        hash_licenseConfig_rel: SmartTable<u256, LicenseConfig>,
+        license_counter: u64,
     }
 
     struct License has key, store, drop, copy {
-        royalty: bool,
+        attributionRequired: bool,
+        commercialUse: bool
+    }
+
+    struct LicenseConfig has key, store, drop, copy {
         price: u64,
-        attributionRequired: bool
+        validity: u64,
+        royalty: u64,
     }
 
     fun init_creator_ref(creator: &signer, ) {
@@ -36,6 +44,9 @@ module launchpad::launchpad5 {
             parent_child_rel: smart_table::new(),
             child_parent_rel: smart_table::new(),
             token_license_rel: smart_table::new(),
+            license_table: smart_table::new(),
+            hash_licenseConfig_rel: smart_table::new(),
+            license_counter: 0
         };
         move_to(creator, my_table);
     }
@@ -54,20 +65,50 @@ module launchpad::launchpad5 {
         }
     }
 
+
+
+    public entry fun create_license(
+        commercialUse: bool,
+        attributionRequired: bool
+    ) acquires MergeProtocol {
+        let protocol =  borrow_global_mut<MergeProtocol>(@launchpad);
+        
+        let license_table = &mut protocol.license_table;
+        let  counter = protocol.license_counter;
+        counter = counter + 1;
+        let license = License {
+            commercialUse,
+            attributionRequired
+        };
+        smart_table::add(license_table, counter, license);
+    }
+
+    fun register_license_config(
+        hash: u256,
+        price: u64,
+                                royalty: u64,
+                                validity: u64, ) acquires MergeProtocol {
+        let hash_licenseConfig_rel = &mut borrow_global_mut<MergeProtocol>(@launchpad).hash_licenseConfig_rel;
+        let licenceConfig = LicenseConfig {
+            price,
+            royalty,
+            validity,
+        };
+        smart_table::add(hash_licenseConfig_rel, hash, licenceConfig);
+    }
+
     public entry fun register_license(
         _creator: &signer,
         token: address,
-        royalty: bool,
+        license_id: u64,
         price: u64,
-        attributionRequired: bool
+        royalty: u64,
+        validity: u64,
+        hash:u256
     ) acquires MergeProtocol {
         let token_license_table = &mut borrow_global_mut<MergeProtocol>(@launchpad).token_license_rel;
-        let license = License {
-            royalty,
-            price,
-            attributionRequired
-        };
-        update_or_create_record(token_license_table, token, license);
+        update_or_create_record(token_license_table, token, license_id);
+        register_license_config(hash, price,royalty,validity)
     }
 
     public entry fun register_parent_child(
@@ -89,9 +130,21 @@ module launchpad::launchpad5 {
     }
 
     #[view]
-    public fun get_license(token: address): vector<License> acquires MergeProtocol {
+    public fun get_license(token: address): vector<u64> acquires MergeProtocol {
         let token_license_table = &borrow_global<MergeProtocol>(@launchpad).token_license_rel;
         *smart_table::borrow(token_license_table, token)
+    }
+
+    #[view]
+    public fun get_license_data(license_id: u64): License acquires MergeProtocol {
+        let table = &borrow_global<MergeProtocol>(@launchpad).license_table;
+        *smart_table::borrow(table, license_id)
+    }
+    
+    #[view]
+    public fun get_license_config_data(hash: u256): LicenseConfig acquires MergeProtocol {
+        let table = &borrow_global<MergeProtocol>(@launchpad).hash_licenseConfig_rel;
+        *smart_table::borrow(table, hash)
     }
 
     #[view]
@@ -105,7 +158,7 @@ module launchpad::launchpad5 {
         let child_table = &borrow_global<MergeProtocol>(@launchpad).child_parent_rel;
         *smart_table::borrow(child_table, token)
     }
-    
+
     // Start of NFT minting section
 
     public entry fun create_collection(
