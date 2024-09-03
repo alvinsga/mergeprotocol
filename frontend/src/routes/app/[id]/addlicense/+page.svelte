@@ -3,18 +3,16 @@
 	import { aptos } from '$lib/aptos.js';
 	import Loading from '$lib/components/Loading.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import Checkbox from '$lib/components/ui/checkbox/checkbox.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
-	import Label from '$lib/components/ui/label/label.svelte';
 	import { shortenAddress } from '$lib/helpers.js';
-	import type { License, OffChainIPData } from '$lib/types';
+	import { defaultLicenses } from '$lib/license.js';
+	import type { LicenseConfig, OffChainIPData } from '$lib/types';
 
 	type LoadingState = 'loading' | 'success' | 'failed';
-	type internalLicenseNaming = { name: string; description: string };
 	export let data;
 
 	const tokenId = $page.params.id;
-	let licenseArrayPayload: License[] = [];
+	let licenseArrayPayload: { id: string; config: LicenseConfig }[] = [];
 
 	const image = '';
 	const tokenName = '';
@@ -22,13 +20,10 @@
 	let loading = false;
 	let selectedId: string | undefined;
 	let price: number | undefined;
-	let transactionSuccessArray: Record<string, LoadingState> = {};
+	let royalty: number | undefined;
+	let validity: number | undefined;
 
-	const defaultLicenses: Record<number, internalLicenseNaming> = {
-		1: { name: 'Royalty Free', description: 'Reproduce as you wish' },
-		2: { name: 'Personal Use', description: 'Reproduce as you wish' },
-		3: { name: 'Commercial Use', description: 'Reproduce as you wish' }
-	};
+	let transactionSuccessArray: Record<string, LoadingState> = {};
 
 	const standardLicense = {
 		exclusive: false,
@@ -51,8 +46,7 @@
 
 	async function addLicenseAptos() {
 		loading = true;
-
-		for (const license of licenseArrayPayload) {
+		for (const licenseItem of licenseArrayPayload) {
 			try {
 				const response = await fetch('/api/addLicense', {
 					method: 'POST',
@@ -61,7 +55,10 @@
 					},
 					body: JSON.stringify({
 						tokenId,
-						license
+						licenseId: licenseItem.id,
+						price: licenseItem.config.price,
+						royalty: licenseItem.config.royalty,
+						validity: licenseItem.config.validity
 					})
 				});
 
@@ -85,6 +82,19 @@
 			transactionSuccessArray[hash] = 'failed';
 			throw Error('failed to submit transaction');
 		}
+	}
+
+	async function getLicenseConfig() {
+		const address = '0x2c0dbb09da78e1b27d100c815305b071aaece4855e0e6f164530808e37ec0069';
+		const number = 5;
+		const response = await aptos.view({
+			payload: {
+				function: `${import.meta.env.VITE_CONTRACT_ADDRESS}::${import.meta.env.VITE_MODULE_NAME}::get_license_config_data2`,
+				typeArguments: [],
+				functionArguments: [address, number]
+			}
+		});
+		console.log(response);
 	}
 
 	async function uploadIP(name: string, image: string, tokenId: string) {
@@ -122,12 +132,15 @@
 	}
 
 	function addToLicensePayloadArray() {
+		if (!selectedId || !price || !royalty || !validity) return;
 		licenseArrayPayload = [
 			...licenseArrayPayload,
-			{ royalty: false, price: 12, attributionRequired: true }
+			{ id: selectedId, config: { royalty, price, validity } }
 		];
 		selectedId = undefined;
 		price = undefined;
+		royalty = undefined;
+		validity = undefined;
 	}
 </script>
 
@@ -149,19 +162,25 @@
 				<div class="mt-10">
 					<div class="mb-3">Price:</div>
 					<Input bind:value={price} />
-					<Button on:click={addToLicensePayloadArray} class="px-8 mt-6">Add</Button>
 				</div>
+				<div class="mt-10">
+					<div class="mb-3">Royalty:</div>
+					<Input bind:value={royalty} />
+				</div>
+				<div class="mt-10">
+					<div class="mb-3">Validity:</div>
+					<Input bind:value={validity} />
+				</div>
+				<Button on:click={addToLicensePayloadArray} class="px-8 mt-6">Add</Button>
 			{/if}
 		</div>
 		<div>
 			{#if licenseArrayPayload.length > 0}
 				<ul class="my-4 space-y-2">
-					{#each licenseArrayPayload as license, index}
+					{#each licenseArrayPayload as license}
 						<li class="border p-3 rounded">
-							<div>License {index + 1}:</div>
-							<div>Royalty: {license.royalty ? 'Yes' : 'No'}</div>
-							<div>Price: {license.price}</div>
-							<div>Attribution Required: {license.attributionRequired ? 'Yes' : 'No'}</div>
+							<div>Name: {defaultLicenses[license.id].name}</div>
+							<div>Description: {defaultLicenses[license.id].description}</div>
 						</li>
 					{/each}
 				</ul>
@@ -206,3 +225,4 @@
 		</div>
 	</div>
 </div>
+<button on:click={getLicenseConfig}>Get lic config</button>

@@ -1,6 +1,8 @@
-module launchpad::launchpad6 {
+module launchpad::launchpad7 {
     use std::string::String;
     use std::vector;
+    use std::hash;
+    use std::bcs;
     use aptos_std::smart_table::{Self, SmartTable};
     use aptos_framework::object::{Self, ExtendRef};
 
@@ -16,7 +18,7 @@ module launchpad::launchpad6 {
         child_parent_rel: SmartTable<address, vector<address>>,
         token_license_rel: SmartTable<address, vector<u64>>,
         license_table: SmartTable<u64, License>,
-        hash_licenseConfig_rel: SmartTable<u256, LicenseConfig>,
+        hash_licenseConfig_rel: SmartTable<vector<u8>, LicenseConfig>,
         license_counter: u64,
     }
 
@@ -84,10 +86,10 @@ module launchpad::launchpad6 {
     }
 
     fun register_license_config(
-        hash: u256,
-        price: u64,
-                                royalty: u64,
-                                validity: u64, ) acquires MergeProtocol {
+        hash: vector<u8>,
+        price: u64, 
+        royalty: u64, 
+        validity: u64, ) acquires MergeProtocol {
         let hash_licenseConfig_rel = &mut borrow_global_mut<MergeProtocol>(@launchpad).hash_licenseConfig_rel;
         let licenceConfig = LicenseConfig {
             price,
@@ -104,11 +106,15 @@ module launchpad::launchpad6 {
         price: u64,
         royalty: u64,
         validity: u64,
-        hash:u256
     ) acquires MergeProtocol {
         let token_license_table = &mut borrow_global_mut<MergeProtocol>(@launchpad).token_license_rel;
+        let concatenated = vector::empty<u8>();
+        vector::append(&mut concatenated, bcs::to_bytes(&token));
+        vector::append(&mut concatenated, bcs::to_bytes(&license_id));
+        let hash_value = hash::sha3_256(concatenated);
+
         update_or_create_record(token_license_table, token, license_id);
-        register_license_config(hash, price,royalty,validity)
+        register_license_config(hash_value, price,royalty,validity)
     }
 
     public entry fun register_parent_child(
@@ -141,10 +147,21 @@ module launchpad::launchpad6 {
         *smart_table::borrow(table, license_id)
     }
     
+    // To remove
     #[view]
-    public fun get_license_config_data(hash: u256): LicenseConfig acquires MergeProtocol {
+    public fun get_license_config_data(hash: vector<u8>): LicenseConfig acquires MergeProtocol {
         let table = &borrow_global<MergeProtocol>(@launchpad).hash_licenseConfig_rel;
         *smart_table::borrow(table, hash)
+    }
+
+    #[view]
+    public fun get_license_config_data2(token:address, license_id: u64): LicenseConfig acquires MergeProtocol {
+        let table = &borrow_global<MergeProtocol>(@launchpad).hash_licenseConfig_rel;
+        let concatenated = vector::empty<u8>();
+        vector::append(&mut concatenated, bcs::to_bytes(&token));
+        vector::append(&mut concatenated, bcs::to_bytes(&license_id));
+        let hash_value = hash::sha3_256(concatenated);
+        *smart_table::borrow(table, hash_value)
     }
 
     #[view]

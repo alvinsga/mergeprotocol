@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { aptos } from '$lib/aptos';
 	import { Button } from '$lib/components/ui/button';
+	import { defaultLicenses } from '$lib/license';
 	import type { MoveValue } from '@aptos-labs/ts-sdk';
 	import { onMount } from 'svelte';
 
@@ -13,37 +14,36 @@
 
 	let childRels: MoveValue = [];
 
-	async function runAptosViewFunction(functionName: string, functionArguments: string) {
+	async function runAptosViewFunction(functionName: string, functionArguments: any[]) {
 		try {
 			return await aptos.view({
 				payload: {
 					function: `${moduleAddress}::${moduleName}::${functionName}`,
 					typeArguments: [],
-					functionArguments: [functionArguments]
+					functionArguments: functionArguments
 				}
 			});
 		} catch (error) {
-			console.error('Error calling view function:', error);
-			throw error;
+			console.log('Not found');
 		}
 	}
 
 	async function getChildToken() {
 		const functionName = 'get_ip_owners';
 		const tokenId = $page.params.id;
-		childRels = runAptosViewFunction(functionName, tokenId);
+		childRels = runAptosViewFunction(functionName, [tokenId]);
 	}
 
 	async function getLicenses() {
 		const functionName = 'get_license';
 		const tokenId = $page.params.id;
-		return (await runAptosViewFunction(functionName, tokenId))[0] as Array<any>;
+		return (await runAptosViewFunction(functionName, [tokenId])) as Array<any>;
 	}
 
 	async function getParentRelationships() {
 		const functionName = 'get_ip_owners';
 		const tokenId = $page.params.id;
-		childRels = runAptosViewFunction(functionName, tokenId);
+		childRels = runAptosViewFunction(functionName, [tokenId]);
 	}
 
 	async function mintLicense() {
@@ -83,23 +83,24 @@
 	<p>Loading token data...</p>
 {/if}
 
-<!-- <div>
+<div>
 	<div>Licenses:</div>
 	{#await getLicenses()}
 		<p>Loading licenses...</p>
 	{:then licenses}
 		{#if licenses?.length > 0}
 			<ul class="list-disc pl-5">
-				{#each licenses as license}
-					<li>{license.name} - {license.price} APT</li>
+				{#each licenses[0] as id}
+					<li>{defaultLicenses[id].name}</li>
+					<li>{defaultLicenses[id].description}</li>
 				{/each}
 			</ul>
 		{:else}
 			<p>No licenses available.</p>
 		{/if}
 	{:catch error}
-		<p>Error loading licenses: {error.message}</p>
+		<p>No licenses available.</p>
 	{/await}
-</div> -->
+</div>
 
 <Button>Buy</Button>

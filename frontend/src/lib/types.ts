@@ -25,7 +25,12 @@ export interface OffChainIPData {
 }
 
 export interface License {
-	royalty: boolean;
-	price: number;
+	commercialUse: boolean;
 	attributionRequired: boolean;
+}
+
+export interface LicenseConfig {
+	royalty: number;
+	price: number;
+	validity: number;
 }

@@ -48,6 +48,7 @@
 	"dependencies": {
 		"bits-ui": "^0.21.13",
 		"clsx": "^2.1.1",
+		"js-sha3": "^0.9.3",
 		"lucide-svelte": "^0.437.0",
 		"pocketbase": "^0.21.4",
 		"tailwind-merge": "^2.5.2",
