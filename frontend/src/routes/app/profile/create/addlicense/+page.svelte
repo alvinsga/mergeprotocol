@@ -11,11 +11,11 @@
 	type LoadingState = 'loading' | 'success' | 'failed';
 	export let data;
 
-	const tokenId = $page.params.id;
-	let licenseArrayPayload: { id: string; config: LicenseConfig }[] = [];
+	const tokenId = $page.url.searchParams.get('id');
+	const name = $page.url.searchParams.get('name');
+	const image = $page.url.searchParams.get('image');
 
-	const image = '';
-	const tokenName = '';
+	let licenseArrayPayload: { id: string; config: LicenseConfig }[] = [];
 
 	let loading = false;
 	let selectedId: string | undefined;
@@ -144,6 +144,9 @@
 	}
 </script>
 
+{name}
+{tokenId}
+{image}
 <div class="mx-auto">
 	<div class="flex space-x-8">
 		<div class="  border-r p-8">

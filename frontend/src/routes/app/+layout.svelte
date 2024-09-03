@@ -73,10 +73,9 @@
 <div class="flex justify-between items-center">
 	<a href="/app" class="text-2xl font-bold">Merge</a>
 	<div class="flex gap-2">
-		<Button href="/app/create">Create IP</Button>
+		<Button href="/app/profile/create">Create IP</Button>
 		{#if data.isLoggedIn}
-			<Button href="/app/manage">Manage IP</Button>
-			<Button href="/app/profile" variant="default">Profile</Button>
+			<Button href="/app/profile/settings" variant="default">Profile</Button>
 		{:else}
 			<form action="/api/login" method="GET">
 				<Button type="submit" variant="default">Login</Button>

@@ -31,7 +31,9 @@
 			<ul class="space-y-2">
 				{#each tokenArray as token}
 					{#await fetch(token.image).then((res) => res.json()) then imageData}
-						<a href="/app/{token.id}">
+						<a
+							href="/app/profile/create/addlicense?id={token.id}&image={imageData.image}&name={token.name}"
+						>
 							<li class="border p-2 rounded flex items-center">
 								<img src={imageData.image} alt={token.name} class="w-16 h-16 object-cover mr-4" />
 
