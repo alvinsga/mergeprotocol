@@ -2,36 +2,39 @@
 	import { Button } from '$lib/components/ui/button';
 	import WalletProvider from '$lib/WalletProvider.svelte';
 	import { wallet } from '$lib/walletStore';
-	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { Input } from '$lib/components/ui/input';
+	import { Label } from '$lib/components/ui/label';
+	import { shortenAddress } from '$lib/helpers.js';
 
 	function disconnect() {
 		$wallet.walletCore.disconnect().catch(console.error);
 	}
 
-	const subPages = [
-		{ title: 'Create', path: '/app/profile/create' },
-		{ title: 'Manage', path: '/app/profile/manage' },
-		{ title: 'Profile', path: '/app/profile/settings' }
-	];
+	export let data;
 </script>
 
-<div class="flex">
-	<nav class="flex-shrink-0 pr-5">
-		<ul>
-			{#each subPages as { title, path }}
-				<li class:active={$page.url.pathname === path}>
-					<a
-						href={path}
-						class="block py-2 px-4 rounded hover:bg-gray-100 transition-colors duration-200 font-semibold"
-						>{title}</a
-					>
-				</li>
-			{/each}
-		</ul>
-	</nav>
-	<main class="flex-grow">
-		<slot />
-		<!-- This slot will be filled with the content of the selected sub-page -->
-	</main>
+<div class="max-w-2xl mx-auto p-6 rounded-lg">
+	<h1 class="text-2xl font-bold mb-6">Profile Settings</h1>
+
+	<div class="mb-6">
+		<Label for="email" class="block mb-2">Email: {data.user?.email}</Label>
+	</div>
+
+	<div class="mb-6">
+		<h2 class="text-lg font-semibold mb-2">Linked Wallet</h2>
+		{#if $wallet.connected}
+			<div class=" mb-2">
+				{shortenAddress($wallet.account?.address ?? '', 12)}
+			</div>
+			<Button on:click={disconnect} variant="outline" class="w-full">Disconnect wallet</Button>
+		{:else}
+			<WalletProvider />
+		{/if}
+	</div>
+
+	<div class="mt-8 pt-6 border-t">
+		<form action="/api/logout" method="POST">
+			<Button type="submit" variant="outline" class="w-full">Logout</Button>
+		</form>
+	</div>
 </div>

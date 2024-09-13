@@ -29,10 +29,13 @@
 				<a href="/" class="text-2xl font-bold">Merge</a>
 				<nav class="hidden md:flex space-x-8 items-center">
 					<a href="/app" class="text-gray-600 hover:text-grey-600 transition-colors">Marketplace</a>
-					<a href="/app/profile/manage" class="text-gray-600 hover:text-grey-600 transition-colors"
+					<a href="/app/manage" class="text-gray-600 hover:text-grey-600 transition-colors"
 						>Manage</a
 					>
-					<a href="/app/profile/create">
+					<a href="/app/profile" class="text-gray-600 hover:text-grey-600 transition-colors"
+						>Profile</a
+					>
+					<a href="/app/create">
 						<Button>Create</Button>
 					</a>
 				</nav>
@@ -48,12 +51,15 @@
 		{#if isMenuOpen && isMobile}
 			<div class="md:hidden border-t border-gray-200" transition:fly={{ y: -20, duration: 300 }}>
 				<nav class="flex flex-col space-y-4 py-4 px-4">
-					<a href="/marketplace" class="text-gray-600 hover:text-purple-600 transition-colors"
-						>Marketplace</a
+					<a href="/app" class="text-gray-600 hover:text-grey-600 transition-colors">Marketplace</a>
+					<a href="/app/manage" class="text-gray-600 hover:text-grey-600 transition-colors"
+						>Manage</a
 					>
-					<a href="/manage" class="text-gray-600 hover:text-purple-600 transition-colors">Manage</a>
-					<a href="/create">
-						<Button class="w-full">Create</Button>
+					<a href="/app/profile" class="text-gray-600 hover:text-grey-600 transition-colors"
+						>Profile</a
+					>
+					<a href="/app/create">
+						<Button>Create</Button>
 					</a>
 				</nav>
 			</div>

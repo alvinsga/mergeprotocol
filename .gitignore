@@ -9,6 +9,7 @@ frontend/.svelte-kit
 /move/build
 /token-minter
 .aptos
+/cursor-ui
 
 # OS
 .DS_Store
