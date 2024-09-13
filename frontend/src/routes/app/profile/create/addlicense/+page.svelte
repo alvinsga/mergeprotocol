@@ -8,22 +8,23 @@
 	import { defaultLicenses } from '$lib/license.js';
 	import type { LicenseConfig, OffChainIPData } from '$lib/types';
 
-	type LoadingState = 'loading' | 'success' | 'failed';
+	type TransactionLoadingState = 'loading' | 'success' | 'failed';
+	type LoadingState = 'blockchain' | 'indexing' | 'none';
 	export let data;
 
-	const tokenId = $page.url.searchParams.get('id');
-	const name = $page.url.searchParams.get('name');
-	const image = $page.url.searchParams.get('image');
+	const tokenId = $page.url.searchParams.get('id') ?? '';
+	const name = $page.url.searchParams.get('name') ?? ' ';
+	const image = $page.url.searchParams.get('image') ?? '';
 
 	let licenseArrayPayload: { id: string; config: LicenseConfig }[] = [];
 
-	let loading = false;
+	let loading: LoadingState = 'none';
 	let selectedId: string | undefined;
 	let price: number | undefined;
 	let royalty: number | undefined;
 	let validity: number | undefined;
 
-	let transactionSuccessArray: Record<string, LoadingState> = {};
+	let transactionSuccessArray: Record<string, TransactionLoadingState> = {};
 
 	const standardLicense = {
 		exclusive: false,
@@ -45,7 +46,6 @@
 	};
 
 	async function addLicenseAptos() {
-		loading = true;
 		for (const licenseItem of licenseArrayPayload) {
 			try {
 				const response = await fetch('/api/addLicense', {
@@ -67,10 +67,9 @@
 					await waitForTransaction(data.hash);
 				}
 			} catch (error) {
-				console.error(error);
+				throw Error('error occurred');
 			}
 		}
-		loading = false;
 	}
 
 	async function waitForTransaction(hash: string) {
@@ -97,8 +96,10 @@
 		console.log(response);
 	}
 
-	async function uploadIP(name: string, image: string, tokenId: string) {
+	async function uploadIP() {
 		if (!data.user) return;
+		if (!name || !image || !tokenId) return;
+
 		const payload: Partial<OffChainIPData> = {
 			name,
 			image,
@@ -123,8 +124,11 @@
 	}
 
 	async function handlePublish() {
+		loading = 'blockchain';
 		await addLicenseAptos();
-		// await uploadIP(tokenName, image, tokenId);
+		loading = 'indexing';
+		await uploadIP();
+		loading = 'none';
 	}
 
 	function selectLicenseOption(id: string) {
@@ -144,9 +148,13 @@
 	}
 </script>
 
-{name}
-{tokenId}
-{image}
+<div class="flex space-x-4">
+	<img src={image} alt={name} class="w-16 h-16 object-cover rounded-lg shadow-md" />
+	<div>
+		<h2 class="text-2xl font-bold">{name}</h2>
+		<p class="text-gray-600">Token ID: {shortenAddress(tokenId, 12)}</p>
+	</div>
+</div>
 <div class="mx-auto">
 	<div class="flex space-x-8">
 		<div class="  border-r p-8">
@@ -187,7 +195,15 @@
 						</li>
 					{/each}
 				</ul>
-				<Button class=" w-full" on:click={() => handlePublish()}>Publish</Button>
+				<Button class=" w-full" on:click={() => handlePublish()}
+					>{#if loading == 'none'}
+						Publish1
+					{:else if loading == 'blockchain'}
+						Submitting transactions
+					{:else if loading == 'indexing'}
+						Indexing assets
+					{/if}</Button
+				>
 				<div class=" mt-8 p-5 text-sm space-y-2">
 					{#each Object.entries(transactionSuccessArray) as [key, value]}
 						<div>
@@ -228,4 +244,3 @@
 		</div>
 	</div>
 </div>
-<button on:click={getLicenseConfig}>Get lic config</button>

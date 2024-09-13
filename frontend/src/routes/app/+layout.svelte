@@ -70,7 +70,7 @@
 	});
 </script>
 
-<div class="flex justify-between items-center">
+<!-- <div class="flex justify-between items-center">
 	<a href="/app" class="text-2xl font-bold">Merge</a>
 	<div class="flex gap-2">
 		<Button href="/app/profile/create">Create IP</Button>
@@ -82,7 +82,7 @@
 			</form>
 		{/if}
 	</div>
-</div>
+</div> -->
 
 <div class="mt-8">
 	<slot />
