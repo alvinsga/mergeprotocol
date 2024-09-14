@@ -29,6 +29,14 @@
 		<div class="flex justify-center space-x-4 mt-12 mb-8">
 			<Button
 				variant="outline"
+				href="/app/create/createNFT"
+				class="w-72 h-48 flex flex-col items-center justify-center text-lg p-6"
+			>
+				<Add class="h-16 w-16 mb-4" />
+				Create a new NFT
+			</Button>
+			<Button
+				variant="outline"
 				on:click={() => {
 					fetchTokens();
 					tokenArray = [];
