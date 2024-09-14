@@ -18,7 +18,7 @@ export interface OffChainIPData {
 	id: string;
 	name: string;
 	image: string;
-	tokenId: string;
+	address: string;
 	collection: string;
 	license: string;
 	creator: string;

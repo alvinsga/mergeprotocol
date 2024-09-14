@@ -1,9 +1,28 @@
+import { aptos } from './aptos';
+
 export function shortenAddress(address: string, length: number) {
 	return (
 		address.slice(0, length / 2 + 2) +
 		'...' +
 		address.slice(address.length - length / 2, address.length)
 	);
+}
+
+export async function runAptosViewFunction(functionName: string, functionArguments: string[]) {
+	const moduleAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
+	const moduleName = import.meta.env.VITE_MODULE_NAME;
+	try {
+		return await aptos.view({
+			payload: {
+				function: `${moduleAddress}::${moduleName}::${functionName}`,
+				typeArguments: [],
+				functionArguments: functionArguments
+			}
+		});
+	} catch (error) {
+		console.error('Error in runAptosViewFunction:', error);
+		return null;
+	}
 }
 
 // const minterContractAddress = '0x2c0dbb09da78e1b27d100c815305b071aaece4855e0e6f164530808e37ec0069';
