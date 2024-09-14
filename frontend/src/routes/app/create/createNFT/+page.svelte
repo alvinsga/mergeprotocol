@@ -33,6 +33,26 @@
 	// 	console.log(response);
 	// }
 
+	// async function addMetadataToDB() {
+	// 	const payload = { collection: 'metadata', data: data.user?.id };
+	// 	try {
+	// 		const response = await fetch(`/api/addRecordDB`, {
+	// 			method: 'POST',
+	// 			headers: {
+	// 				'Content-Type': 'application/json'
+	// 			},
+	// 			body: JSON.stringify(payload)
+	// 		});
+
+	// 		if (!response.ok) throw new Error('Failed to upload IP asset');
+	// 		const result = await response.json();
+	// 		console.log('IP uploaded successfully:', result.record);
+	// 		return result.record.id;
+	// 	} catch (error) {
+	// 		console.error('Error uploading IP:', error);
+	// 	}
+	// }
+
 	async function createToken() {
 		if (!$wallet.account) return;
 		const transaction: InputTransactionData = {

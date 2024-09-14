@@ -34,3 +34,8 @@ export interface LicenseConfig {
 	price: number;
 	validity: number;
 }
+
+export interface DatabaseRecordPayload {
+	collection: string;
+	data: unknown;
+}
