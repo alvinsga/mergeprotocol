@@ -4,7 +4,9 @@
 	import { Button } from '$lib/components/ui/button';
 	import { shortenAddress } from '$lib/helpers';
 	import { defaultLicenses } from '$lib/license';
+	import { wallet } from '$lib/walletStore';
 	import type { MoveValue } from '@aptos-labs/ts-sdk';
+	import type { InputTransactionData } from '@aptos-labs/wallet-adapter-core';
 	import { onMount } from 'svelte';
 
 	const moduleAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
@@ -47,9 +49,29 @@
 		childRels = runAptosViewFunction(functionName, [tokenId]);
 	}
 
-	async function mintLicense() {
-		// Pay for license
-		// Mint NFT
+	async function mintLicense(licenseId: string) {
+		console.log('minting license id:' + licenseId);
+		if (!$wallet.account) return;
+		const tokenAddress = tokenData.token_data_id;
+		const name = tokenData.token_name;
+		const description = `License for ${name} `;
+		const uri = `https://mergenetwork.vercel.app/api/metadata?id=g5wvj4mee22qzef`;
+
+		const transaction: InputTransactionData = {
+			sender: $wallet.account.address,
+			data: {
+				function: `${moduleAddress}::${moduleName}::mint_license_token`,
+				functionArguments: [description, name, uri, licenseId, tokenAddress]
+			}
+		};
+		// Publish to blockchain
+		const committedTxn = await $wallet.walletCore.signAndSubmitTransaction(transaction);
+		// const committedTxn = await aptos.signAndSubmitTransaction({
+		// 	signer: adminAccount,
+		// 	transaction
+		// });
+		const response = await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
+		console.log(response);
 	}
 
 	async function getTokenData() {
@@ -88,7 +110,7 @@
 									<h3 class="font-medium">{defaultLicenses[id].name}</h3>
 									<p class="text-sm text-gray-600">{defaultLicenses[id].description}</p>
 								</div>
-								<Button class="text-sm">Buy</Button>
+								<Button on:click={() => mintLicense(id)} class="text-sm">Buy</Button>
 							</li>
 						{/each}
 					</ul>

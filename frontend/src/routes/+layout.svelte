@@ -2,9 +2,13 @@
 	import '../app.css';
 	import { page } from '$app/stores';
 	import { Button } from '$lib/components/ui/button';
+	import { Badge } from '$lib/components/ui/badge';
+
 	import { Menu, X } from 'lucide-svelte';
 	import { fly } from 'svelte/transition';
 	import { onMount } from 'svelte';
+	import { wallet } from '$lib/walletStore';
+	import { shortenAddress } from '$lib/helpers';
 
 	let isMenuOpen = false;
 	let innerWidth: number;
@@ -27,7 +31,14 @@
 		<div class="container mx-auto px-4">
 			<div class="flex justify-between items-center py-4">
 				<a href="/" class="text-2xl font-bold">Merge</a>
+
 				<nav class="hidden md:flex space-x-8 items-center">
+					{#if $wallet.account}
+						<Badge>
+							<span class="bg-green-500 rounded-full h-2 w-2 mr-2 inline-block"></span>
+							{shortenAddress($wallet.account.address, 8)}
+						</Badge>
+					{/if}
 					<a href="/app" class="text-gray-600 hover:text-grey-600 transition-colors">Marketplace</a>
 					<a href="/app/manage" class="text-gray-600 hover:text-grey-600 transition-colors"
 						>Manage</a

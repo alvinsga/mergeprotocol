@@ -3,8 +3,11 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { shortenAddress } from '$lib/helpers';
 	import type { IP } from '$lib/types.ts';
+	import { wallet } from '$lib/walletStore.js';
 	import { onMount } from 'svelte';
 	export let data;
+
+	const nftLicenseCollectionContractAddress = import.meta.env.VITE_NFTLICENSE_ADDRESS;
 
 	const ipAssets = data.ipAssets;
 	onMount(() => {
@@ -13,8 +16,8 @@
 
 	async function getLicenses() {
 		const licenseNFTArray = await aptos.getAccountOwnedTokensFromCollectionAddress({
-			collectionAddress: '0x1bfd2ed3d444be97e630952402308fee541bf7b6c322f55a64fbb374aba265ae',
-			accountAddress: '0x2c0dbb09da78e1b27d100c815305b071aaece4855e0e6f164530808e37ec0069'
+			collectionAddress: nftLicenseCollectionContractAddress,
+			accountAddress: `${$wallet.account?.address}`
 		});
 		return licenseNFTArray;
 	}
