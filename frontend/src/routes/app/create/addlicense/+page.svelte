@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { aptos } from '$lib/aptos.js';
 	import Loading from '$lib/components/Loading.svelte';
@@ -102,12 +103,18 @@
 		if (!tokenData) return;
 		const image = (await (await fetch(tokenData.token_uri)).json()).image;
 
+		const licenseArray: Array<string> = [];
+		licenseArrayPayload.forEach((license) => {
+			licenseArray.push(license.id);
+		});
 		const payload: Partial<OffChainIPData> = {
 			name: tokenData.token_name,
 			image,
 			address: tokenId,
-			creator: data.user?.id
+			creator: data.user?.id,
+			license: licenseArray
 		};
+
 		try {
 			const response = await fetch(`/api/createAssetDB`, {
 				method: 'POST',
@@ -131,6 +138,7 @@
 		loading = 'indexing';
 		await uploadIP();
 		loading = 'none';
+		goto(`/app/${tokenId}`);
 	}
 
 	function selectLicenseOption(id: string) {
@@ -175,7 +183,7 @@
 				<p class="text-gray-600 my-2">Token ID: {shortenAddress(tokenId, 12)}</p>
 				{#await fetch(tokenData.token_uri).then((res) => res.json()) then i}
 					<!-- svelte-ignore a11y-missing-attribute -->
-					<div class="text-gray-600">Type: {i.token_type}</div>
+					<div class="text-gray-600">Type: {i.type}</div>
 				{/await}
 			</div>
 		</div>

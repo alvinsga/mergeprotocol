@@ -112,13 +112,15 @@
 					<div class="p-4">
 						<h3 class="text-lg font-semibold mb-2">{ip.name}</h3>
 						<p class="text-sm text-gray-600 mb-2">Address: {shortenAddress(ip.address, 8)}</p>
-						<p class="text-sm text-gray-600">
-							{#each ip.license as licenseId}
-								<Badge variant="secondary" class="mr-1">
-									{defaultLicenses[licenseId]?.name || 'Unknown'}
-								</Badge>
-							{/each}
-						</p>
+						{#if ip.license}
+							<p class="text-sm text-gray-600">
+								{#each ip.license as licenseId}
+									<Badge variant="secondary" class="m-1">
+										{defaultLicenses[licenseId]?.name || 'Unknown'}
+									</Badge>
+								{/each}
+							</p>
+						{/if}
 					</div>
 				</a>
 			{/each}

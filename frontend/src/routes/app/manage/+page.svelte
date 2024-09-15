@@ -26,11 +26,10 @@
 	{#if ipAssets.length > 0}
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
 			{#each ipAssets as ip}
-				<div class="rounded-lg p-4 transition-all duration-300 hover:shadow-md hover:bg-gray-50">
+				<div class="rounded-lg p-4 transition-all duration-300">
 					<img src={ip.image} alt={ip.name} class="w-full h-48 object-cover rounded-md mb-2" />
 					<h3 class="text-lg font-semibold">{ip.name}</h3>
 					<p class="text-sm text-gray-600">{shortenAddress(ip.address, 12)}</p>
-					<p class="text-sm text-gray-600">{ip.license}</p>
 				</div>
 			{/each}
 		</div>
@@ -47,17 +46,24 @@
 			{#if licenses.length > 0}
 				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
 					{#each licenses as license}
-						<div
-							class="rounded-lg p-4 transition-all duration-300 hover:shadow-md hover:bg-gray-50"
-						>
-							<h3 class="text-lg font-semibold">{license.current_token_data?.token_name}</h3>
-							<p class="text-sm text-gray-600">
-								{license.current_token_data?.description}
-							</p>
-							<p class="text-sm text-gray-600">
-								{shortenAddress(license.token_data_id, 12)}
-							</p>
-						</div>
+						{#if license.current_token_data}
+							<div class="flex items-center">
+								{#await fetch(license.current_token_data.token_uri).then( (res) => res.json() ) then imageData}
+									<!-- svelte-ignore a11y-missing-attribute -->
+									<img
+										src={imageData.image}
+										alt="wh"
+										class="w-24 h-24 object-cover rounded-lg shadow-md mr-4"
+									/>
+								{/await}
+								<div class="flex-1">
+									<h3 class="text-lg font-semibold">{license.current_token_data?.token_name}</h3>
+									<p class="text-sm text-gray-600">
+										{shortenAddress(license.token_data_id, 12)}
+									</p>
+								</div>
+							</div>
+						{/if}
 					{/each}
 				</div>
 			{:else}

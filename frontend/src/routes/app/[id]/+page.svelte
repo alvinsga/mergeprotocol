@@ -121,6 +121,10 @@
 			>
 				Token ID: {shortenAddress(tokenData.token_data_id, 12) || 'N/A'}
 			</a>
+			{#await fetch(tokenData.token_uri).then((res) => res.json()) then i}
+				<!-- svelte-ignore a11y-missing-attribute -->
+				<div class="text-sm text-gray-500">Type: {i.type}</div>
+			{/await}
 
 			<h2 class="text-xl font-semibold my-6">Licenses</h2>
 			{#await getLicenses()}

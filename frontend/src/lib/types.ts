@@ -20,8 +20,8 @@ export interface OffChainIPData {
 	image: string;
 	address: string;
 	collection: string;
-	license: string;
 	creator: string;
+	license: Array<string>;
 }
 
 export interface License {
