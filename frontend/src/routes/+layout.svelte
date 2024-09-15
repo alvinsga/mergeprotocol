@@ -74,33 +74,33 @@
 				<div>
 					<h3 class="font-bold text-lg mb-4">Product</h3>
 					<ul class="space-y-2">
-						<li><a href="/features" class="hover:text-purple-600">Features</a></li>
-						<li><a href="/pricing" class="hover:text-purple-600">Pricing</a></li>
-						<li><a href="/marketplace" class="hover:text-purple-600">Marketplace</a></li>
+						<li><a href="/admin/soon" class="hover:text-purple-600">Features</a></li>
+						<li><a href="/admin/soon" class="hover:text-purple-600">Pricing</a></li>
+						<li><a href="/app" class="hover:text-purple-600">Marketplace</a></li>
 					</ul>
 				</div>
 				<div>
 					<h3 class="font-bold text-lg mb-4">Company</h3>
 					<ul class="space-y-2">
-						<li><a href="/about" class="hover:text-purple-600">About Us</a></li>
-						<li><a href="/careers" class="hover:text-purple-600">Careers</a></li>
-						<li><a href="/contact" class="hover:text-purple-600">Contact</a></li>
+						<li><a href="/admin/soon" class="hover:text-purple-600">About Us</a></li>
+						<li><a href="/admin/soon" class="hover:text-purple-600">Careers</a></li>
+						<li><a href="/admin/soon" class="hover:text-purple-600">Contact</a></li>
 					</ul>
 				</div>
 				<div>
 					<h3 class="font-bold text-lg mb-4">Resources</h3>
 					<ul class="space-y-2">
-						<li><a href="/blog" class="hover:text-purple-600">Blog</a></li>
-						<li><a href="/documentation" class="hover:text-purple-600">Documentation</a></li>
-						<li><a href="/support" class="hover:text-purple-600">Support</a></li>
+						<li><a href="/admin/soon" class="hover:text-purple-600">Blog</a></li>
+						<li><a href="/admin/soon" class="hover:text-purple-600">Documentation</a></li>
+						<li><a href="/admin/soon" class="hover:text-purple-600">Support</a></li>
 					</ul>
 				</div>
 				<div>
 					<h3 class="font-bold text-lg mb-4">Legal</h3>
 					<ul class="space-y-2">
-						<li><a href="/terms" class="hover:text-purple-600">Terms of Service</a></li>
-						<li><a href="/privacy" class="hover:text-purple-600">Privacy Policy</a></li>
-						<li><a href="/cookies" class="hover:text-purple-600">Cookie Policy</a></li>
+						<li><a href="/admin/privacy" class="hover:text-purple-600">Terms of Service</a></li>
+						<li><a href="/admin/privacy" class="hover:text-purple-600">Privacy Policy</a></li>
+						<li><a href="/admin/privacy" class="hover:text-purple-600">Cookie Policy</a></li>
 					</ul>
 				</div>
 			</div>
