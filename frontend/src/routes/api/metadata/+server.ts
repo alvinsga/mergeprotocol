@@ -1,4 +1,4 @@
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 
 export async function GET({ url, locals }) {
 	const id = url.searchParams.get('id');
@@ -10,22 +10,33 @@ export async function GET({ url, locals }) {
 	try {
 		const record = await locals.pb.collection('metadata').getOne(id);
 		if (record.type === 'collection') {
-			return json({
+			const body = {
 				name: record.name,
 				description: record.description,
 				image: record.image,
 				external_url: record.external_url
+			};
+			return new Response(JSON.stringify(body), {
+				headers: {
+					'Content-Type': 'application/json',
+					'Access-Control-Allow-Origin': '*' // You can replace '*' with your domain like 'http://localhost:5173'
+				}
 			});
 		} else if (record.type === 'token') {
-			return json({
+			const body = {
 				description: record.description,
 				image: record.image,
 				name: record.name,
 				external_url: record.external_url,
+				type: record.token_type,
 				attributes: []
+			};
+			return new Response(JSON.stringify(body), {
+				headers: {
+					'Content-Type': 'application/json',
+					'Access-Control-Allow-Origin': '*' // You can replace '*' with your domain like 'http://localhost:5173'
+				}
 			});
-		} else {
-			return json(record);
 		}
 	} catch (err) {
 		console.error('Error fetching metadata:', err);
