@@ -20,9 +20,9 @@ export async function runAptosViewFunction(functionName: string, functionArgumen
 				functionArguments: functionArguments
 			}
 		});
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	} catch (error) {
-		console.error('Error in runAptosViewFunction:', error);
-		return null;
+		console.log('An error occurred');
 	}
 }
 

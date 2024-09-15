@@ -2,13 +2,15 @@
 	import { aptos } from '$lib/aptos';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import type { AptosIPData } from '$lib/types';
+	import { wallet } from '$lib/walletStore';
 	import Add from 'lucide-svelte/icons/plus';
 
 	let tokenArray: AptosIPData[] = [];
 
 	async function fetchTokens() {
+		if (!$wallet.account?.address) return;
 		const tokens = await aptos.getAccountOwnedTokens({
-			accountAddress: '0x305637d4e73d84e671a74c901c327d654501e99393639044442f77a3195c8695'
+			accountAddress: $wallet.account?.address
 		});
 		tokenArray = tokens.map((token) => ({
 			id: token.token_data_id,
@@ -25,7 +27,7 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 	<h2 class="text-3xl font-bold mb-6">Create</h2>
 
-	{#if !tokenArray.length}
+	{#if tokenArray.length === 0}
 		<div class="flex justify-center space-x-4 mt-12 mb-8">
 			<Button
 				variant="outline"
@@ -57,7 +59,7 @@
 				{#each tokenArray as token}
 					{#await fetch(token.image).then((res) => res.json()) then imageData}
 						<a
-							href="/app/create/addlicense?id={token.id}&image={imageData.image}&name={token.name}"
+							href="/app/create/addlicense?id={token.id}"
 							class="bg-white rounded-lg shadow-md overflow-hidden block transition-transform duration-300 hover:scale-105"
 						>
 							<img src={imageData.image} alt={token.name} class="w-full h-48 object-cover" />
@@ -71,7 +73,7 @@
 						</a>
 					{:catch}
 						<a
-							href="/app/{token.id}"
+							href="/app/create/addlicense?id={token.id}&name={token.name}"
 							class="bg-white rounded-lg shadow-md overflow-hidden block transition-transform duration-300 hover:scale-105"
 						>
 							<div class="h-48 bg-gray-200 flex items-center justify-center">

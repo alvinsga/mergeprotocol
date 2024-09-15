@@ -6,6 +6,7 @@
 	import type { InputTransactionData } from '@aptos-labs/wallet-adapter-core';
 	import { Button } from '$lib/components/ui/button';
 	import * as Dialog from '$lib/components/ui/dialog';
+	import { goto } from '$app/navigation';
 
 	export let data;
 	let showCollectionDialog = false;
@@ -13,8 +14,7 @@
 	let tokendescription = '';
 	let tokenCollectionName = '';
 	let tokenname = '';
-	let tokenurl =
-		'https://fuchsia-subtle-bison-841.mypinata.cloud/ipfs/QmZx5Jo3E5fwa8DQVFWcPdVkDwvzeTHffR6VCrWZRj8UuX';
+	let image = '';
 
 	const minterContractAddress =
 		'0x2c0dbb09da78e1b27d100c815305b071aaece4855e0e6f164530808e37ec0069';
@@ -33,44 +33,74 @@
 	// 	console.log(response);
 	// }
 
-	// async function addMetadataToDB() {
-	// 	const payload = { collection: 'metadata', data: data.user?.id };
-	// 	try {
-	// 		const response = await fetch(`/api/addRecordDB`, {
-	// 			method: 'POST',
-	// 			headers: {
-	// 				'Content-Type': 'application/json'
-	// 			},
-	// 			body: JSON.stringify(payload)
-	// 		});
+	async function addMetadataToDB() {
+		const payload = {
+			collection: 'metadata',
+			data: {
+				description: tokendescription,
+				name: tokenname,
+				image,
+				creator: data.user?.id,
+				type: 'token'
+			}
+		};
+		try {
+			const response = await fetch(`/api/addRecordDB`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(payload)
+			});
 
-	// 		if (!response.ok) throw new Error('Failed to upload IP asset');
-	// 		const result = await response.json();
-	// 		console.log('IP uploaded successfully:', result.record);
-	// 		return result.record.id;
-	// 	} catch (error) {
-	// 		console.error('Error uploading IP:', error);
-	// 	}
-	// }
+			if (!response.ok) throw new Error('Failed to upload IP asset');
+			const result = await response.json();
+			console.log('IP uploaded successfully:', result.record);
+			return result.record.id;
+		} catch (error) {
+			console.error('Error uploading IP:', error);
+		}
+	}
 
 	async function createToken() {
 		if (!$wallet.account) return;
-		const transaction: InputTransactionData = {
-			sender: $wallet.account.address,
-			data: {
-				function: `0x4::aptos_token::mint`,
-				functionArguments: [tokenCollectionName, tokendescription, tokenname, tokenurl, [], [], []]
+		try {
+			const recordId = await addMetadataToDB();
+			const tokenUri = `https://mergenetwork.vercel.app/api/metadata?id=${recordId}`;
+			const transaction: InputTransactionData = {
+				sender: $wallet.account.address,
+				data: {
+					function: `0x4::aptos_token::mint`,
+					functionArguments: [
+						tokenCollectionName,
+						tokendescription,
+						tokenname,
+						tokenUri,
+						[],
+						[],
+						[]
+					]
+				}
+			};
+			// Publish to blockchain
+			const committedTxn = await $wallet.walletCore.signAndSubmitTransaction(transaction);
+			// const committedTxn = await aptos.signAndSubmitTransaction({
+			// 	signer: adminAccount,
+			// 	transaction
+			// });
+			const response = await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
+			if (response.success) {
+				const txnInfo: any = await aptos.getTransactionByHash({
+					transactionHash: committedTxn.hash
+				});
+				const createTokenEvent = txnInfo.events.find(
+					(event: any) => event.type === '0x4::collection::Mint'
+				);
+				goto(`/app/create/addlicense?id=${createTokenEvent.data.token}`);
 			}
-		};
-		// Publish to blockchain
-		const committedTxn = await $wallet.walletCore.signAndSubmitTransaction(transaction);
-		// const committedTxn = await aptos.signAndSubmitTransaction({
-		// 	signer: adminAccount,
-		// 	transaction
-		// });
-		const response = await aptos.waitForTransaction({ transactionHash: committedTxn.hash });
-		console.log(response);
-		// await uploadToDatabase();
+
+			// await uploadToDatabase();
+		} catch (error) {}
 	}
 </script>
 
@@ -127,8 +157,8 @@
 	</Dialog.Root>
 
 	<div class="grid w-full max-w-sm items-center gap-1.5">
-		<Label for="url">URL</Label>
-		<Input type="url" id="url" bind:value={tokenurl} placeholder="Enter token URL" />
+		<Label for="url">Image URL</Label>
+		<Input type="url" id="url" bind:value={image} placeholder="Enter image URL" />
 	</div>
 	<div class="mt-4">
 		<Button on:click={createToken}>Create IP Token</Button>

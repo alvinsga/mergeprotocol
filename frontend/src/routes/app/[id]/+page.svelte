@@ -80,6 +80,7 @@
 
 	onMount(async () => {
 		tokenData = await getTokenData();
+		console.log(tokenData);
 	});
 </script>
 
@@ -90,15 +91,38 @@
 				<!-- svelte-ignore a11y-missing-attribute -->
 				<img src={imageData.image} class="w-full rounded-lg shadow-lg" />
 			{/await}
+			<div class="flex items-center mt-6 bg-gray-100 p-3 rounded-lg">
+				{#await fetch(tokenData.current_collection?.uri).then((res) => res.json()) then imageData}
+					<!-- svelte-ignore a11y-missing-attribute -->
+					<img src={imageData.image} class=" w-8 h-8 aspect-square rounded mr-3" />
+				{/await}
+				<div>
+					<p class="text-sm text-gray-600 mt-1">
+						<strong>Collection Name:</strong>
+						{tokenData.current_collection?.collection_name || 'N/A'}
+					</p>
+					<p class="text-sm text-gray-600 mt-1">
+						<strong>Description:</strong>
+						{tokenData.current_collection?.description || 'N/A'}
+					</p>
+				</div>
+			</div>
 		</div>
 		<div class="w-1/2 pl-4">
 			<h1 class="text-3xl font-bold mb-2">{tokenData.token_name || 'N/A'}</h1>
 			<p class="text-gray-600 mb-4">{tokenData.description || 'N/A'}</p>
-			<p class="text-sm text-gray-500 mb-6">
+			<!-- svelte-ignore a11y-click-events-have-key-events -->
+			<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+			<a
+				href={`https://explorer.aptoslabs.com/account/${tokenData.token_data_id}`}
+				class="text-sm text-gray-500 mb-6"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
 				Token ID: {shortenAddress(tokenData.token_data_id, 12) || 'N/A'}
-			</p>
+			</a>
 
-			<h2 class="text-xl font-semibold mb-3">Licenses</h2>
+			<h2 class="text-xl font-semibold my-6">Licenses</h2>
 			{#await getLicenses()}
 				<p>Loading licenses...</p>
 			{:then licenses}
@@ -121,7 +145,7 @@
 				<p>No licenses available.</p>
 			{/await}
 
-			<div class="mt-6">
+			<!-- <div class="mt-6">
 				<h2 class="text-xl font-semibold mb-3">Related IPs</h2>
 				<div class="mb-2">
 					<span class="font-medium">Derivatives:</span>
@@ -131,7 +155,7 @@
 					<span class="font-medium">Parent IP:</span>
 					{childRels}
 				</div>
-			</div>
+			</div> -->
 
 			<!-- <Button href="/app/{tokenId}/addlicense" class="mt-6">Add License</Button> -->
 		</div>
