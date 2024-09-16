@@ -68,19 +68,6 @@ The contract supports creating NFTs that represent licenses for assets. These ar
 
 This is the frontend application for the **Merge Protocol** platform, built with **SvelteKit**. The application interacts with the **Merge Protocol** Aptos Move contract, which manages digital assets, licenses, and NFTs. The platform allows users to create and manage collections, mint tokens, and configure licenses for digital assets.
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Technologies](#technologies)
-- [Getting Started](#getting-started)
-- [Environment Variables](#environment-variables)
-- [Available Scripts](#available-scripts)
-- [Folder Structure](#folder-structure)
-- [Deployment](#deployment)
-- [Contributing](#contributing)
-- [License](#license)
-
 ## Overview
 
 The **Merge Protocol** fronten provides a simple and intuitive interface to interact with the protocol contract. Users can:
