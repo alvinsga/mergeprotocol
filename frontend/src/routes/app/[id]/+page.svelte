@@ -80,12 +80,11 @@
 
 	onMount(async () => {
 		tokenData = await getTokenData();
-		console.log(tokenData);
 	});
 </script>
 
 {#if tokenData}
-	<div class="flex p-8 mb-24">
+	<div class="flex p-8 mb-24 max-w-6xl mx-auto">
 		<div class="w-1/2 pr-4">
 			{#await fetch(tokenData.token_uri).then((res) => res.json()) then imageData}
 				<!-- svelte-ignore a11y-missing-attribute -->

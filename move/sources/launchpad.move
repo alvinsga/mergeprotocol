@@ -275,8 +275,8 @@ module launchpad::launchpad8 {
         let hash_value = hash::sha3_256(concatenated);
         let license_config = *smart_table::borrow(table, hash_value);
         let owner_of_token = object::owner(object::address_to_object<AptosToken>(token));
-        let fee_to_owner = license_config.price * (95 / 100);
-        let fee_to_protocol = license_config.price * (5 / 100); // 5% fees
+        let fee_to_owner = (license_config.price  * 95) / 100;
+        let fee_to_protocol = (license_config.price * 5) / 100; // 5% fees
         coin::transfer<AptosCoin>(creator, owner_of_token, fee_to_owner);
         coin::transfer<AptosCoin>(
             creator,
