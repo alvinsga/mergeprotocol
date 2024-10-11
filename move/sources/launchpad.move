@@ -1,4 +1,4 @@
-module launchpad::launchpad8 {
+module launchpad::launchpad9 {
     use std::string::String;
     use std::vector;
     use std::signer;
@@ -8,6 +8,7 @@ module launchpad::launchpad8 {
     use std::bcs;
     use aptos_std::smart_table::{Self, SmartTable};
     use aptos_framework::object::{Self, ExtendRef};
+    use aptos_framework::object::{Object};
 
     use aptos_token_objects::aptos_token;
     use aptos_token_objects::aptos_token::AptosToken;
@@ -18,40 +19,64 @@ module launchpad::launchpad8 {
     }
 
     struct MergeProtocol has key {
+        // Parent to child and child to parent rels to store
+        // relationships to derivative works
         parent_child_rel: SmartTable<address, vector<address>>,
         child_parent_rel: SmartTable<address, vector<address>>,
-        // relationship between Asset and License IDs
+        // Main table: stores relationship between Asset and License IDs
         token_license_rel: SmartTable<address, vector<u64>>,
+        // License table storing license IDs (which are pre-created)
         license_table: SmartTable<u64, License>,
+        // Stores the license data for each asset + license ID
         hash_licenseConfig_rel: SmartTable<vector<u8>, LicenseConfig>,
-        license_counter: u64,
-        // relationship between License NFT and Asset NFT
+        // stores relationship between License NFT minted and Asset NFT
         nft_license_table: SmartTable<address, NFTLicenseData>,
+        // Used to increment license IDs
+        license_counter: u64,
     }
 
     struct License has key, store, drop, copy {
+        transferrable: bool,
         attributionRequired: bool,
-        commercialUse: bool
+        commercialUse: bool,
+        derivativesAllowed: bool,
+        aiUse: bool,
     }
 
     struct LicenseConfig has key, store, drop, copy {
         price: u64,
         validity: u64,
-        royalty: u64,
+        royaltyPercent: u64,
+        royaltyAddress: address,
     }
 
     struct NFTLicenseData has key, store, drop, copy {
         expiry: u64,
         asset: address,
+        license_id: u64,
+    }
+
+    // New generic function to update or create a record in a SmartTable
+    fun update_or_create_record<K: drop+ copy, V: drop + copy>(
+        table: &mut SmartTable<K, vector<V>>,
+        key: K,
+        value: V
+    ) {
+        if (smart_table::contains(table, key)) {
+            let mut_ref = smart_table::borrow_mut(table, key);
+            vector::push_back(mut_ref, value);
+        } else {
+            smart_table::add(table, key, vector::singleton(value));
+        }
     }
 
 
-
     // Start of protocol section
-    public entry fun init_table(creator: &signer, ) {
+
+    // Init contracts
+    public entry fun init(creator: &signer, ) {
         let autorized_address = @0x2c0dbb09da78e1b27d100c815305b071aaece4855e0e6f164530808e37ec0069;
         assert!(signer::address_of(creator) == autorized_address, 0);
-
         let my_table = MergeProtocol {
             parent_child_rel: smart_table::new(),
             child_parent_rel: smart_table::new(),
@@ -72,52 +97,49 @@ module launchpad::launchpad8 {
         move_to(creator, CollectionCreator { creator_extend_ref });
     }
 
-    // New generic function to update or create a record in a SmartTable
-    fun update_or_create_record<K: drop+ copy, V: drop + copy>(
-        table: &mut SmartTable<K, vector<V>>,
-        key: K,
-        value: V
-    ) {
-        if (smart_table::contains(table, key)) {
-            let mut_ref = smart_table::borrow_mut(table, key);
-            vector::push_back(mut_ref, value);
-        } else {
-            smart_table::add(table, key, vector::singleton(value));
-        }
-    }
-
-    public entry fun create_license(
+    public entry fun create_new_license(
+        creator: &signer,
+        transferrable: bool,
+        attributionRequired: bool,
         commercialUse: bool,
-        attributionRequired: bool
+        aiUse: bool,
+        derivativesAllowed: bool,
     ) acquires MergeProtocol {
+        // Only let contract owner create new generic licenses
+        let autorized_address = @0x2c0dbb09da78e1b27d100c815305b071aaece4855e0e6f164530808e37ec0069;
+        assert!(signer::address_of(creator) == autorized_address, 0);
         let protocol = borrow_global_mut<MergeProtocol>(@launchpad);
-
         let license_table = &mut protocol.license_table;
         let counter = protocol.license_counter;
         counter = counter + 1;
         let license = License {
             commercialUse,
+            aiUse,
+            derivativesAllowed,
+            transferrable,
             attributionRequired
         };
         smart_table::add(license_table, counter, license);
     }
 
-    fun register_license_config(
+    fun register_license_config_for_asset(
         hash: vector<u8>,
         price: u64,
-        royalty: u64,
+        royaltyPercent: u64,
+        royaltyAddress: address,
         validity: u64, ) acquires MergeProtocol {
         let hash_licenseConfig_rel = &mut borrow_global_mut<MergeProtocol>(@launchpad).hash_licenseConfig_rel;
         let licenceConfig = LicenseConfig {
             price,
-            royalty,
+            royaltyPercent,
+            royaltyAddress,
             validity,
         };
         smart_table::add(hash_licenseConfig_rel, hash, licenceConfig);
     }
 
-    public entry fun register_license(
-        _creator: &signer,
+    public entry fun attach_license_to_asset(
+        creator: &signer,
         token: address,
         license_id: u64,
         price: u64,
@@ -131,10 +153,10 @@ module launchpad::launchpad8 {
         let hash_value = hash::sha3_256(concatenated);
 
         update_or_create_record(token_license_table, token, license_id);
-        register_license_config(hash_value, price, royalty, validity)
+        register_license_config_for_asset(hash_value, price, royalty, signer::address_of(creator), validity)
     }
 
-    public entry fun register_parent_child(
+    public entry fun register_parent_child_(
         _creator: &signer,
         parent: address,
         child: address
@@ -149,19 +171,19 @@ module launchpad::launchpad8 {
     }
 
     #[view]
-    public fun get_license(token: address): vector<u64> acquires MergeProtocol {
+    public fun get_license_for_asset(token: address): vector<u64> acquires MergeProtocol {
         let token_license_table = &borrow_global<MergeProtocol>(@launchpad).token_license_rel;
         *smart_table::borrow(token_license_table, token)
     }
 
     #[view]
-    public fun get_license_data(license_id: u64): License acquires MergeProtocol {
+    public fun get_license(license_id: u64): License acquires MergeProtocol {
         let table = &borrow_global<MergeProtocol>(@launchpad).license_table;
         *smart_table::borrow(table, license_id)
     }
 
     #[view]
-    public fun get_license_config_data(token: address, license_id: u64): LicenseConfig acquires MergeProtocol {
+    public fun get_license_config(token: address, license_id: u64): LicenseConfig acquires MergeProtocol {
         let table = &borrow_global<MergeProtocol>(@launchpad).hash_licenseConfig_rel;
         let concatenated = vector::empty<u8>();
         vector::append(&mut concatenated, bcs::to_bytes(&token));
@@ -188,7 +210,14 @@ module launchpad::launchpad8 {
         *smart_table::borrow(nft_license_table, token)
     }
 
+    #[view]
+    public fun collection_address(creator: address, collection_name: String): address {
+        // Recompute the collection address given the creator and its name.
+        collection::create_collection_address(&creator, &collection_name)
+    }
+
     // Start of NFT minting section
+
     public entry fun create_collection(
         _creator: &signer,
         description: String,
@@ -222,30 +251,28 @@ module launchpad::launchpad8 {
         );
     }
 
-    // public entry fun mint_token(
-    //     _creator: &signer,
-    //     owner: address,
-    //     collection_name: String,
-    //     description: String,
-    //     token_name: String,
-    //     uri: String
-    // ) acquires CollectionCreator {
-    //     let creator_extend_ref = &borrow_global<CollectionCreator>(@launchpad).creator_extend_ref;
-    //     let creator_signer = &object::generate_signer_for_extending(creator_extend_ref);
-    //
-    //     let tokenRef = aptos_token::mint_token_object(
-    //         creator_signer,
-    //         collection_name,
-    //         description,
-    //         token_name,
-    //         uri,
-    //         vector[],
-    //         vector[],
-    //         vector[],
-    //     );
-    //
-    //     object::transfer(creator_signer, tokenRef, owner);
-    // }
+    fun mint_token(
+        creator: &signer,
+        description: String,
+        token_name: String,
+        uri: String
+    ) : Object<AptosToken>  acquires CollectionCreator {
+        let creator_extend_ref = &borrow_global<CollectionCreator>(@launchpad).creator_extend_ref;
+        let creator_signer = &object::generate_signer_for_extending(creator_extend_ref);
+        let collection_name = std::string::utf8(b"Merge Protocol 10");
+        let tokenRef = aptos_token::mint_token_object(
+            creator_signer,
+            collection_name,
+            description,
+            token_name,
+            uri,
+            vector[],
+            vector[],
+            vector[],
+        );
+        object::transfer(creator_signer, tokenRef, signer::address_of(creator));
+        tokenRef
+    }
 
 
     public entry fun mint_license_token(
@@ -259,7 +286,6 @@ module launchpad::launchpad8 {
         // Create name of token and specify collection
         let license_token_name = std::string::utf8(b"License: ");
         std::string::append(&mut license_token_name, name);
-        let collection_name = std::string::utf8(b"Merge Protocol 10");
 
         // check if license ID is valid
         let token_license_table = &borrow_global<MergeProtocol>(@launchpad).token_license_rel;
@@ -285,30 +311,14 @@ module launchpad::launchpad8 {
         );
 
         // Mint token
-        let creator_extend_ref = &borrow_global<CollectionCreator>(@launchpad).creator_extend_ref;
-        let creator_signer = &object::generate_signer_for_extending(creator_extend_ref);
-        let tokenRef = aptos_token::mint_token_object(
-            creator_signer,
-            collection_name,
-            description,
-            license_token_name,
-            uri,
-            vector[],
-            vector[],
-            vector[],
-        );
-        object::transfer(creator_signer, tokenRef, signer::address_of(creator));
+        let tokenRef = mint_token(creator, description, license_token_name,uri );
 
+
+        // Update NFT license table
         let nft_license_table = &mut borrow_global_mut<MergeProtocol>(@launchpad).nft_license_table;
         let licenseData = NFTLicenseData {
-            expiry: 0, asset: token
+            expiry: 0, asset: token, license_id
         };
         smart_table::add(nft_license_table, object::object_address(&tokenRef), licenseData);
-    }
-
-    #[view]
-    public fun collection_address(creator: address, collection_name: String): address {
-        // Recompute the collection address given the creator and its name.
-        collection::create_collection_address(&creator, &collection_name)
     }
 }

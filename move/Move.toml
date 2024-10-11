@@ -1,5 +1,5 @@
 [package]
-name = "Launchpad8"
+name = "Launchpad9"
 version = "1.1.0"
 upgrade_policy = "compatible"
 
