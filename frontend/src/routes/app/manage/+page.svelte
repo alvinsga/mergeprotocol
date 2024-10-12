@@ -43,11 +43,14 @@
 	{#if ipAssets.length > 0}
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
 			{#each ipAssets as ip}
-				<div class="rounded-lg p-4 transition-all duration-300">
+				<a
+					href="/app/create/addlicense?id={ip.address}"
+					class="rounded-lg p-4 transition-all duration-300"
+				>
 					<img src={ip.image} alt={ip.name} class="w-full h-48 object-cover rounded-md mb-2" />
 					<h3 class="text-lg font-semibold">{ip.name}</h3>
 					<p class="text-sm text-gray-600">{shortenAddress(ip.address, 12)}</p>
-				</div>
+				</a>
 			{/each}
 		</div>
 	{:else}

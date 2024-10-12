@@ -9,6 +9,7 @@
 	import { defaultLicenses } from '$lib/license.js';
 	import type { LicenseConfig, OffChainIPData } from '$lib/types';
 	import { onMount } from 'svelte';
+	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 
 	type TransactionLoadingState = 'loading' | 'success' | 'failed';
 	type LoadingState = 'blockchain' | 'indexing' | 'none';
@@ -22,24 +23,18 @@
 
 	let loading: LoadingState = 'none';
 	let selectedId: string | undefined;
-	let price: number | undefined;
-	let royalty: number | undefined;
-	let validity: number | undefined;
+	let price: number = 0;
+	let royalty: number = 0;
+	let validity: number = 0;
 
 	let transactionSuccessArray: Record<string, TransactionLoadingState> = {};
 
 	const standardLicense = {
-		exclusive: false,
-		rightsManaged: false,
+		transferrable: true,
 		attributionRequired: true,
+		commercialUse: true,
 		derivativesAllowed: true,
-		shareAlike: false,
-		commercialUseAllowed: true,
-		nonCommercialUseOnly: false,
-		modifiable: true,
-		aiUseAllowed: false,
-		geographicRestrictions: false,
-		numberOfUsesRestricted: false
+		aiUse: false
 	};
 
 	const licenseConfig = {
@@ -146,19 +141,19 @@
 	}
 
 	function addToLicensePayloadArray() {
-		if (!selectedId || !price || !royalty || !validity) return;
+		if (!selectedId) return;
 		licenseArrayPayload = [
 			...licenseArrayPayload,
 			{ id: selectedId, config: { royalty, price, validity } }
 		];
 		selectedId = undefined;
-		price = undefined;
-		royalty = undefined;
-		validity = undefined;
+		price = 0;
+		royalty = 0;
+		validity = 0;
 	}
 
 	async function getLicenses() {
-		const functionName = 'get_license';
+		const functionName = 'get_license_for_asset';
 		return (await runAptosViewFunction(functionName, [tokenId])) as Array<any>;
 	}
 
@@ -224,13 +219,30 @@
 					<h3 class="text-xl font-semibold mb-4">Select License Type</h3>
 					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
 						{#each Object.entries(defaultLicenses) as [key, value]}
-							<button
-								on:click={() => selectLicenseOption(key)}
-								class="p-4 border rounded-lg hover:bg-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-							>
-								<div class="text-lg font-medium">{value.name}</div>
-								<div class="text-sm text-gray-600 mt-2">{value.description}</div>
-							</button>
+							<Tooltip.Root>
+								<Tooltip.Trigger class="h-full">
+									<button
+										on:click={() => selectLicenseOption(key)}
+										class="p-4 border rounded-lg hover:bg-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 relative w-full h-full flex flex-col justify-between"
+									>
+										<div>
+											<div class="text-lg font-medium">{value.name}</div>
+											<div class="text-sm text-gray-600 mt-2">{value.description}</div>
+										</div>
+									</button>
+								</Tooltip.Trigger>
+								<Tooltip.Content
+									class="bg-gray-800 text-white p-4 rounded shadow-lg text-sm max-w-md"
+									side="right"
+									align="center"
+								>
+									<pre class="whitespace-pre-wrap overflow-auto max-h-80">{JSON.stringify(
+											value.json,
+											null,
+											2
+										)}</pre>
+								</Tooltip.Content>
+							</Tooltip.Root>
 						{/each}
 					</div>
 					{#if selectedId}
@@ -241,7 +253,7 @@
 								>
 								<Input id="price" bind:value={price} placeholder="Enter price" />
 							</div>
-							<div>
+							<!-- <div>
 								<label for="royalty" class="block text-sm font-medium text-gray-700 mb-1"
 									>Royalty:</label
 								>
@@ -249,10 +261,10 @@
 							</div>
 							<div>
 								<label for="validity" class="block text-sm font-medium text-gray-700 mb-1"
-									>Validity:</label
+									>Expiry date:</label
 								>
 								<Input id="validity" bind:value={validity} placeholder="Enter validity period" />
-							</div>
+							</div> -->
 							<Button on:click={addToLicensePayloadArray} class="w-full mt-4">Add License</Button>
 						</div>
 					{/if}

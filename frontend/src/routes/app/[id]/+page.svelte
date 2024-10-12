@@ -38,7 +38,7 @@
 	}
 
 	async function getLicenses() {
-		const functionName = 'get_license';
+		const functionName = 'get_license_for_asset';
 		const tokenId = $page.params.id;
 		return (await runAptosViewFunction(functionName, [tokenId])) as Array<any>;
 	}

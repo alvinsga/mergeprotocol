@@ -16,9 +16,6 @@
 	let tokenname = '';
 	let image = '';
 
-	const minterContractAddress =
-		'0x2c0dbb09da78e1b27d100c815305b071aaece4855e0e6f164530808e37ec0069';
-
 	// async function getCollectionsForWallet() {
 	// 	if (!$wallet.account) return;
 	// 	const ledgerVersion = (await aptos.getLedgerInfo()).ledger_version;
@@ -104,7 +101,7 @@
 	}
 </script>
 
-<div class="space-y-4 p-8">
+<div class="space-y-4 p-8 mx-auto max-w-2xl">
 	<div class="text-xl font-bold">Create token</div>
 	<div class="grid w-full max-w-sm items-center gap-1.5">
 		<Label for="name">Name</Label>

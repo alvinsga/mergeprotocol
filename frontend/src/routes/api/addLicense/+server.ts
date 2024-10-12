@@ -13,7 +13,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	const transaction = await aptos.transaction.build.simple({
 		sender: adminAccount.accountAddress,
 		data: {
-			function: `${VITE_CONTRACT_ADDRESS}::${VITE_MODULE_NAME}::register_license`,
+			function: `${VITE_CONTRACT_ADDRESS}::${VITE_MODULE_NAME}::attach_license_to_asset`,
 			functionArguments: [tokenId, licenseId, price, royalty, validity]
 		}
 	});
