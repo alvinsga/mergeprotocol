@@ -156,6 +156,34 @@ module launchpad::launchpad9 {
         register_license_config_for_asset(hash_value, price, royalty, signer::address_of(creator), validity)
     }
 
+    public entry fun remove_token_license(
+        addr: address,
+        license_id: u64
+    )acquires MergeProtocol {
+        let token_license_table = &mut borrow_global_mut<MergeProtocol>(@launchpad).token_license_rel;
+
+        if (smart_table::contains(token_license_table, addr)) {
+            let licenses = smart_table::borrow_mut(token_license_table, addr);
+            let (found, index) = vector::index_of(licenses, &license_id);
+            if (found) {
+                vector::remove(licenses, index);
+                if (vector::is_empty(licenses)) {
+                    smart_table::remove(token_license_table, addr);
+                };
+
+                // Remove corresponding entry from hash_licenseConfig_rel
+                let concatenated = vector::empty<u8>();
+                vector::append(&mut concatenated, bcs::to_bytes(&addr));
+                vector::append(&mut concatenated, bcs::to_bytes(&license_id));
+                let hash = hash::sha3_256(concatenated);
+                let hash_licenseConfig_rel = &mut borrow_global_mut<MergeProtocol>(@launchpad).hash_licenseConfig_rel;
+                if (smart_table::contains(hash_licenseConfig_rel, hash)) {
+                    smart_table::remove(hash_licenseConfig_rel, hash);
+                };
+            };
+        }
+    }
+
     public entry fun register_parent_child_(
         _creator: &signer,
         parent: address,

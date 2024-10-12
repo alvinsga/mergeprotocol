@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { aptos } from '$lib/aptos.js';
 	import Loading from '$lib/components/Loading.svelte';
@@ -10,6 +10,8 @@
 	import type { LicenseConfig, OffChainIPData } from '$lib/types';
 	import { onMount } from 'svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+	import * as Alert from '$lib/components/ui/alert';
+	import { ExternalLink } from 'lucide-svelte';
 
 	type TransactionLoadingState = 'loading' | 'success' | 'failed';
 	type LoadingState = 'blockchain' | 'indexing' | 'none';
@@ -29,18 +31,10 @@
 
 	let transactionSuccessArray: Record<string, TransactionLoadingState> = {};
 
-	const standardLicense = {
-		transferrable: true,
-		attributionRequired: true,
-		commercialUse: true,
-		derivativesAllowed: true,
-		aiUse: false
-	};
+	let licenseRemoveTransactionHash = '';
+	let getLicenseCheck = getLicenses();
 
-	const licenseConfig = {
-		expiration: 34234,
-		cost: 30
-	};
+	let finishAddingLicense = false;
 
 	async function addLicenseAptos() {
 		for (const licenseItem of licenseArrayPayload) {
@@ -66,6 +60,35 @@
 			} catch (error) {
 				throw Error('error occurred');
 			}
+		}
+		finishAddingLicense = true;
+	}
+
+	async function removeLicenseAptos(licenseId: string) {
+		try {
+			const response = await fetch('/api/removeLicense', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					tokenId,
+					licenseId
+				})
+			});
+			const data = await response.json();
+			if (data.success) {
+				const response = await aptos.waitForTransaction({ transactionHash: data.hash });
+				if (response.success) {
+					licenseRemoveTransactionHash = data.hash;
+					// refresh license array
+					getLicenseCheck = getLicenses();
+				} else {
+					throw Error('failed to submit transaction');
+				}
+			}
+		} catch (error) {
+			throw Error('error occurred');
 		}
 	}
 
@@ -133,7 +156,6 @@
 		loading = 'indexing';
 		await uploadIP();
 		loading = 'none';
-		goto(`/app/${tokenId}`);
 	}
 
 	function selectLicenseOption(id: string) {
@@ -168,7 +190,22 @@
 
 {#if tokenData}
 	<div class="max-w-4xl mx-auto p-6 rounded-lg mb-32">
-		<div class="flex items-center space-x-6 mb-8">
+		{#if licenseRemoveTransactionHash}
+			<Alert.Root variant="destructive">
+				<Alert.Title
+					>License was removed successfully:
+					<a
+						href="https://explorer.aptoslabs.com/txn/{licenseRemoveTransactionHash}"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="ml-2 text-blue-600 hover:underline"
+					>
+						{shortenAddress(licenseRemoveTransactionHash, 12)}
+					</a>
+				</Alert.Title>
+			</Alert.Root>
+		{/if}
+		<div class="flex items-center space-x-6 my-8">
 			{#await fetch(tokenData.token_uri).then((res) => res.json()) then imageData}
 				<!-- svelte-ignore a11y-missing-attribute -->
 				<img src={imageData.image} alt="wh" class="w-24 h-24 object-cover rounded-lg shadow-md" />
@@ -176,16 +213,12 @@
 			<div>
 				<h2 class="text-3xl font-bold text-gray-800">{tokenData.token_name}</h2>
 				<p class="text-gray-600 my-2">Token ID: {shortenAddress(tokenId, 12)}</p>
-				{#await fetch(tokenData.token_uri).then((res) => res.json()) then i}
-					<!-- svelte-ignore a11y-missing-attribute -->
-					<div class="text-gray-600">Type: {i.type}</div>
-				{/await}
 			</div>
 		</div>
 
 		<div class="mb-8">
 			<h2 class="text-2xl font-semibold mb-4">Existing Licenses</h2>
-			{#await getLicenses()}
+			{#await getLicenseCheck}
 				<p class="text-gray-600">Loading licenses...</p>
 			{:then licenses}
 				{#if licenses?.length > 0}
@@ -198,7 +231,12 @@
 											<h3 class="text-lg font-medium text-gray-900">{defaultLicenses[id].name}</h3>
 											<p class="mt-1 text-sm text-gray-600">{defaultLicenses[id].description}</p>
 										</div>
-										<Button class="text-sm">Remove</Button>
+										<Button
+											class="text-sm"
+											on:click={() => {
+												removeLicenseAptos(id);
+											}}>Remove</Button
+										>
 									</div>
 								</li>
 							{/each}
@@ -249,7 +287,7 @@
 						<div class="space-y-4 mt-6">
 							<div>
 								<label for="price" class="block text-sm font-medium text-gray-700 mb-1"
-									>Price:</label
+									>Price (APT):</label
 								>
 								<Input id="price" bind:value={price} placeholder="Enter price" />
 							</div>
@@ -271,7 +309,7 @@
 				</div>
 
 				<div class="md:w-1/2 mt-8 md:mt-0">
-					<h3 class="text-xl font-semibold mb-4">Added Licenses</h3>
+					<h3 class="text-xl font-semibold mb-4">Licenses to add</h3>
 					{#if licenseArrayPayload.length > 0}
 						<ul class="space-y-4 mb-6">
 							{#each licenseArrayPayload as license}
@@ -281,8 +319,8 @@
 										{defaultLicenses[license.id].description}
 									</div>
 									<div class="text-sm text-gray-600 mt-2">
-										Price: {license.config.price} | Royalty: {license.config.royalty}% | Validity: {license
-											.config.validity}
+										Price: {license.config.price} APT | Royalty: {license.config.royalty}% |
+										Validity: {license.config.validity}
 									</div>
 								</li>
 							{/each}
@@ -319,10 +357,16 @@
 									{/if}
 								</div>
 							{/each}
+							{#if finishAddingLicense}
+								<a href="/app/{tokenId}" class="flex items-center text-blue-600 hover:underline">
+									View asset on marketplace
+									<ExternalLink class="inline-block ml-1 w-4 h-4" />
+								</a>
+							{/if}
 						</div>
 					{:else}
 						<p class="text-gray-600">
-							No licenses added yet. Select a license type and add details to get started.
+							No licenses added yet. Select a license type and add a price (optional)
 						</p>
 					{/if}
 				</div>
