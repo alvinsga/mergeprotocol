@@ -8,6 +8,7 @@
 	import type { MoveValue } from '@aptos-labs/ts-sdk';
 	import type { InputTransactionData } from '@aptos-labs/wallet-adapter-core';
 	import { onMount } from 'svelte';
+	import { toast } from 'svelte-sonner';
 
 	const moduleAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
 	const moduleName = import.meta.env.VITE_MODULE_NAME;
@@ -51,7 +52,12 @@
 
 	async function mintLicense(licenseId: string) {
 		console.log('minting license id:' + licenseId);
-		if (!$wallet.account) return;
+		if (!$wallet.account) {
+			toast.message('Wallet not detected', {
+				description: 'Go to the Profile page and connect a supported wallet'
+			});
+			return;
+		}
 		const tokenAddress = tokenData.token_data_id;
 		const name = tokenData.token_name;
 		const description = `License for ${name} `;
@@ -80,6 +86,7 @@
 
 	onMount(async () => {
 		tokenData = await getTokenData();
+		console.log(tokenData);
 	});
 </script>
 
@@ -120,11 +127,6 @@
 			>
 				Token ID: {shortenAddress(tokenData.token_data_id, 12) || 'N/A'}
 			</a>
-			{#await fetch(tokenData.token_uri).then((res) => res.json()) then i}
-				<!-- svelte-ignore a11y-missing-attribute -->
-				<div class="text-sm text-gray-500">Type: {i.type}</div>
-			{/await}
-
 			<h2 class="text-xl font-semibold my-6">Licenses</h2>
 			{#await getLicenses()}
 				<p>Loading licenses...</p>

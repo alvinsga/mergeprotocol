@@ -13,6 +13,7 @@ module launchpad::launchpad9 {
     use aptos_token_objects::aptos_token;
     use aptos_token_objects::aptos_token::AptosToken;
     use aptos_token_objects::collection;
+    use aptos_token_objects::token;
 
     struct CollectionCreator has key {
         creator_extend_ref: ExtendRef,
@@ -277,6 +278,10 @@ module launchpad::launchpad9 {
             0,
             100,
         );
+    }
+
+    public entry fun mint_token_to_collection(creator: &signer, description: String, token_name: String, uri: String ) acquires CollectionCreator {
+        let _tokenRef = mint_token(creator, description,token_name, uri);
     }
 
     fun mint_token(

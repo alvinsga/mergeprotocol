@@ -24,8 +24,8 @@ The contract is organized into several key structs and functions:
 ### Main Functions
 
 - `init_table`: Initializes the protocol's data structures.
-- `create_license`: Creates a new license with specified properties.
-- `register_license`: Registers a license for a token with pricing and validity information.
+- `create_new_license`: Creates a new license with specified properties.
+- `attach_license_to_asset`: Registers a license for a token with pricing and validity information.
 - `register_parent_child`: Establishes a parent-child relationship between two tokens.
 - `create_collection`: Creates a new collection for NFTs.
 - `mint_license_token`: Mints a new license token for a given asset.
@@ -44,8 +44,8 @@ The contract is organized into several key structs and functions:
 To use this contract, you need to:
 
 1. Initialize the protocol using `init_table`.
-2. Create licenses using `create_license`.
-3. Register licenses for tokens using `register_license`.
+2. Create licenses using `create_new_license`.
+3. Register licenses for tokens using `attach_license_to_asset`.
 4. Create collections for NFTs using `create_collection`.
 5. Mint license tokens using `mint_license_token`.
 

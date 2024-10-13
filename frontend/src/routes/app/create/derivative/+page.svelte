@@ -6,6 +6,7 @@
 	import type { InputTransactionData } from '@aptos-labs/wallet-adapter-core';
 	import { Button } from '$lib/components/ui/button';
 	import { goto } from '$app/navigation';
+	import { toast } from 'svelte-sonner';
 
 	export let data;
 	let showCollectionDialog = false;
@@ -45,7 +46,15 @@
 	}
 
 	async function createToken() {
-		if (!$wallet.account) return;
+		if (!tokenname || !tokendescription || !image) {
+			toast('Fill in all the fields');
+		}
+		if (!$wallet.account) {
+			toast.message('Wallet not detected', {
+				description: 'Go to the Profile page and connect a supported wallet'
+			});
+			return;
+		}
 		try {
 			const recordId = await addMetadataToDB();
 			const tokenUri = `https://mergenetwork.vercel.app/api/metadata?id=${recordId}`;

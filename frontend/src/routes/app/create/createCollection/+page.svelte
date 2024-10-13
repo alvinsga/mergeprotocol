@@ -6,6 +6,7 @@
 
 	import { wallet } from '$lib/walletStore';
 	import type { InputTransactionData } from '@aptos-labs/wallet-adapter-core';
+	import { toast } from 'svelte-sonner';
 
 	export let data;
 
@@ -15,7 +16,12 @@
 	let url =
 		'https://fuchsia-subtle-bison-841.mypinata.cloud/ipfs/QmZ6n9ogw9iek3Cb2G2kU7F2Hs2cqorJ1DwvWTi4i375sn';
 	async function createCollection() {
-		if (!$wallet.account) return;
+		if (!$wallet.account) {
+			toast.message('Wallet not detected', {
+				description: 'Go to the Profile page and connect a supported wallet'
+			});
+			return;
+		}
 		const transaction: InputTransactionData = {
 			sender: $wallet.account.address,
 			data: {

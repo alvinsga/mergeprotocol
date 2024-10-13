@@ -7,6 +7,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { goto } from '$app/navigation';
+	import { toast } from 'svelte-sonner';
 
 	export let data;
 	let showCollectionDialog = false;
@@ -15,6 +16,9 @@
 	let tokenCollectionName = '';
 	let tokenname = '';
 	let image = '';
+
+	const moduleAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
+	const moduleName = import.meta.env.VITE_MODULE_NAME;
 
 	// async function getCollectionsForWallet() {
 	// 	if (!$wallet.account) return;
@@ -60,23 +64,23 @@
 	}
 
 	async function createToken() {
-		if (!$wallet.account) return;
+		if (!tokenname || !tokendescription || !image) {
+			toast('Fill in all the fields');
+		}
+		if (!$wallet.account) {
+			toast.message('Wallet not detected', {
+				description: 'Go to the Profile page and connect a supported wallet'
+			});
+			return;
+		}
 		try {
 			const recordId = await addMetadataToDB();
 			const tokenUri = `https://mergenetwork.vercel.app/api/metadata?id=${recordId}`;
 			const transaction: InputTransactionData = {
 				sender: $wallet.account.address,
 				data: {
-					function: `0x4::aptos_token::mint`,
-					functionArguments: [
-						tokenCollectionName,
-						tokendescription,
-						tokenname,
-						tokenUri,
-						[],
-						[],
-						[]
-					]
+					function: `${moduleAddress}::${moduleName}::mint_token_to_collection`,
+					functionArguments: [tokendescription, tokenname, tokenUri]
 				}
 			};
 			// Publish to blockchain
@@ -90,6 +94,7 @@
 				const txnInfo: any = await aptos.getTransactionByHash({
 					transactionHash: committedTxn.hash
 				});
+				console.log('txnInfo', txnInfo);
 				const createTokenEvent = txnInfo.events.find(
 					(event: any) => event.type === '0x4::collection::Mint'
 				);
@@ -118,7 +123,7 @@
 		/>
 	</div>
 
-	<div class="grid w-full max-w-sm items-center gap-1.5">
+	<!-- <div class="grid w-full max-w-sm items-center gap-1.5">
 		<Label for="collection">Collection</Label>
 		<Button on:click={() => (showCollectionDialog = true)}>
 			{tokenCollectionName ? tokenCollectionName : 'Select Collection'}
@@ -151,7 +156,7 @@
 				</a>
 			</Dialog.Footer>
 		</Dialog.Content>
-	</Dialog.Root>
+	</Dialog.Root> -->
 
 	<div class="grid w-full max-w-sm items-center gap-1.5">
 		<Label for="url">Image URL</Label>

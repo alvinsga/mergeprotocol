@@ -4,11 +4,17 @@
 	import type { AptosIPData } from '$lib/types';
 	import { wallet } from '$lib/walletStore';
 	import Add from 'lucide-svelte/icons/plus';
+	import { toast } from 'svelte-sonner';
 
 	let tokenArray: AptosIPData[] = [];
 
 	async function fetchTokens() {
-		if (!$wallet.account?.address) return;
+		if (!$wallet.account?.address) {
+			toast.message('Wallet not detected', {
+				description: 'Go to the Profile page and connect a supported wallet'
+			});
+			return;
+		}
 		const tokens = await aptos.getAccountOwnedTokens({
 			accountAddress: $wallet.account?.address
 		});

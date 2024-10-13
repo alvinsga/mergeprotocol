@@ -6,6 +6,7 @@
 	import type { IP } from '$lib/types.ts';
 	import { wallet } from '$lib/walletStore.js';
 	import { onMount } from 'svelte';
+	import { toast } from 'svelte-sonner';
 	export let data;
 
 	const ipAssets = data.ipAssets;
@@ -116,8 +117,13 @@
 												</div>
 											</div>
 										{/if}
-										<Button class="mt-4" href="/app/create/derivative"
-											>Create Derivative Work</Button
+										<Button
+											class="mt-4"
+											on:click={() => {
+												toast('This feature is coming');
+											}}
+										>
+											Create Derivative Work</Button
 										>
 									</Accordion.Content>
 								</Accordion.Item>

@@ -9,6 +9,7 @@
 	import { onMount } from 'svelte';
 	import { wallet } from '$lib/walletStore';
 	import { shortenAddress } from '$lib/helpers';
+	import { Toaster, toast } from 'svelte-sonner';
 
 	let isMenuOpen = false;
 	let innerWidth: number;
@@ -29,6 +30,7 @@
 	<title>Merge Protocol</title>
 </svelte:head>
 
+<Toaster expand />
 <div class="min-h-screen flex flex-col">
 	<header class="bg-white border-b border-gray-200">
 		<div class="container mx-auto px-4">
