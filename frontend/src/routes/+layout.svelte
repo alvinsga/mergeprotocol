@@ -25,6 +25,9 @@
 </script>
 
 <svelte:window bind:innerWidth />
+<svelte:head>
+	<title>Merge Protocol</title>
+</svelte:head>
 
 <div class="min-h-screen flex flex-col">
 	<header class="bg-white border-b border-gray-200">
