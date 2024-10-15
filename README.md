@@ -63,6 +63,125 @@ Assets can have parent-child relationships, which are tracked bidirectionally us
 
 The contract supports creating NFTs that represent licenses for assets. These are minted using the `mint_license_token` function and include a fee mechanism where 95% goes to the asset owner and 5% to the protocol.
 
+## Function Signatures
+
+```rust
+public entry fun init(creator: &signer)
+
+public entry fun create_new_license(
+    creator: &signer,
+    transferrable: bool,
+    attributionRequired: bool,
+    commercialUse: bool,
+    aiUse: bool,
+    derivativesAllowed: bool,
+)
+```
+
+## Asset and License Management Functions
+
+```rust
+public entry fun attach_license_to_asset(
+    creator: &signer,
+    token: address,
+    license_id: u64,
+    price: u64,
+    royalty: u64,
+    validity: u64,
+)
+
+public entry fun remove_token_license(
+    addr: address,
+    license_id: u64
+)
+
+public entry fun register_parent_child_(
+    _creator: &signer,
+    parent: address,
+    child: address
+)
+```
+
+## View Functions
+
+```rust
+#[view]
+public fun get_license_for_asset(token: address): vector<u64>
+
+#[view]
+public fun get_license(license_id: u64): License
+
+#[view]
+public fun get_license_config(token: address, license_id: u64): LicenseConfig
+
+#[view]
+public fun get_parent(token: address): vector<address>
+
+#[view]
+public fun get_child(token: address): vector<address>
+
+#[view]
+public fun get_NFTLicense_data(token: address): NFTLicenseData
+
+#[view]
+public fun collection_address(creator: address, collection_name: String): address
+```
+
+## NFT Minting Functions
+
+```rust
+public entry fun create_collection(
+    _creator: &signer,
+    description: String,
+    max_supply: u64,
+    collection_name: String,
+    uri: String
+)
+
+public entry fun mint_token_to_collection(
+    creator: &signer,
+    description: String,
+    token_name: String,
+    uri: String
+)
+
+public entry fun mint_license_token(
+    creator: &signer,
+    description: String,
+    name: String,
+    uri: String,
+    license_id: u64,
+    token: address
+)
+```
+
+## Internal Functions (not public)
+
+```rust
+fun init_creator_ref(creator: &signer)
+
+fun register_license_config_for_asset(
+    hash: vector<u8>,
+    price: u64,
+    royaltyPercent: u64,
+    royaltyAddress: address,
+    validity: u64,
+)
+
+fun mint_token(
+    creator: &signer,
+    description: String,
+    token_name: String,
+    uri: String
+) : Object<AptosToken>
+
+fun update_or_create_record<K: drop + copy, V: drop + copy>(
+    table: &mut SmartTable<K, vector<V>>,
+    key: K,
+    value: V
+)
+```
+
 
 # Merge Protocol Frontend
 
@@ -77,21 +196,13 @@ The **Merge Protocol** fronten provides a simple and intuitive interface to inte
 - View and manage parent-child relationships between tokens.
 - Access license data for NFTs.
 
-The application is live at [https://mergenetwork.vercel.app/](https://mergenetwork.vercel.app/).
+The application is live at [https://merge.foundation](https://merge.foundation)
 
 ## Features
 
 - **Create Collections**: Easily create and manage NFT collections.
 - **Mint Tokens**: Mint NFTs with attached licenses and manage them within the app.
+- **Attach Licenses to existing Tokens**: Attach licenses to existing NFTs.
+- **Mint and Trade License NFTs**: Easily buy licenses which are minted as NFTs and tradeable on NFT marketplaces.
 - **View Licenses**: Retrieve and display license data for assets.
-- **Track Parent-Child Relationships**: View the relationship between assets and their associated licenses.
-
-## Technologies
-
-This project leverages the following technologies:
-
-- **SvelteKit**: Framework for building web applications.
-- **Aptos Move Contract**: Blockchain contract for handling digital assets.
-- **Vercel**: Hosting platform for the frontend.
-
-
+- **Track Parent-Child Relationships (In development)** : View the relationship between assets and their associated licenses.
